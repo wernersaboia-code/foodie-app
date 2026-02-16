@@ -2,6 +2,7 @@
 'use client';
 
 import { createContext, useState, useCallback, useEffect, ReactNode } from 'react';
+import { toast } from 'sonner';
 import { MenuItem, CartItem } from '@/types';
 import { CartContextType } from '@/types/cart.types';
 import { Coupon } from '@/lib/constants/coupon.constants';
@@ -67,13 +68,13 @@ export function CartProvider({ children }: CartProviderProps) {
             if (result.valid && result.discount !== undefined) {
                 setCouponDiscount(result.discount);
             } else {
-                // Cupom não é mais válido (ex: subtotal menor que mínimo)
                 setAppliedCoupon(null);
                 setCouponDiscount(0);
             }
         }
     }, [items, appliedCoupon]);
 
+    // Adicionar item ao carrinho
     const addItem = useCallback((
         menuItem: MenuItem,
         quantity: number = 1,
@@ -82,13 +83,19 @@ export function CartProvider({ children }: CartProviderProps) {
         if (quantity < CART_CONFIG.minQuantityPerItem) return;
 
         setItems((currentItems) => {
+            // Se for de outro restaurante, confirma antes de limpar
             if (restaurantId && restaurantId !== menuItem.restaurantId) {
                 const confirmClear = window.confirm(CART_MESSAGES.differentRestaurant);
                 if (!confirmClear) return currentItems;
+
                 setRestaurantId(menuItem.restaurantId);
-                // Limpar cupom ao trocar de restaurante
                 setAppliedCoupon(null);
                 setCouponDiscount(0);
+
+                toast.info('Carrinho atualizado para novo restaurante', {
+                    icon: '🔄',
+                });
+
                 return [{ menuItem, quantity, observation }];
             }
 
@@ -96,6 +103,7 @@ export function CartProvider({ children }: CartProviderProps) {
                 setRestaurantId(menuItem.restaurantId);
             }
 
+            // Verifica se o item já existe (com mesma observação)
             const existingIndex = currentItems.findIndex(
                 (item) =>
                     item.menuItem.id === menuItem.id &&
@@ -109,8 +117,19 @@ export function CartProvider({ children }: CartProviderProps) {
                     ...newItems[existingIndex],
                     quantity: Math.min(newQuantity, CART_CONFIG.maxQuantityPerItem),
                 };
+
+                toast.success(`${menuItem.name} atualizado no carrinho`, {
+                    icon: '🛒',
+                    duration: 2000,
+                });
+
                 return newItems;
             }
+
+            toast.success(`${menuItem.name} adicionado ao carrinho`, {
+                icon: '🛒',
+                duration: 2000,
+            });
 
             return [...currentItems, { menuItem, quantity, observation }];
         });
@@ -118,8 +137,13 @@ export function CartProvider({ children }: CartProviderProps) {
         setIsCartOpen(true);
     }, [restaurantId]);
 
+    // Remover item do carrinho
     const removeItem = useCallback((itemId: string, observation?: string) => {
         setItems((currentItems) => {
+            const itemToRemove = currentItems.find(
+                (item) => item.menuItem.id === itemId && item.observation === observation
+            );
+
             const newItems = currentItems.filter(
                 (item) => !(item.menuItem.id === itemId && item.observation === observation)
             );
@@ -130,10 +154,18 @@ export function CartProvider({ children }: CartProviderProps) {
                 setCouponDiscount(0);
             }
 
+            if (itemToRemove) {
+                toast.info(`${itemToRemove.menuItem.name} removido do carrinho`, {
+                    icon: '🗑️',
+                    duration: 2000,
+                });
+            }
+
             return newItems;
         });
     }, []);
 
+    // Atualizar quantidade de um item
     const updateQuantity = useCallback((
         itemId: string,
         quantity: number,
@@ -155,14 +187,20 @@ export function CartProvider({ children }: CartProviderProps) {
         );
     }, [removeItem]);
 
+    // Limpar carrinho
     const clearCart = useCallback(() => {
         setItems([]);
         setRestaurantId(null);
         setIsCartOpen(false);
         setAppliedCoupon(null);
         setCouponDiscount(0);
+
+        toast.info('Carrinho limpo', {
+            icon: '🧹',
+        });
     }, []);
 
+    // Aplicar cupom
     const applyCoupon = useCallback((code: string): { success: boolean; error?: string } => {
         const subtotal = calculateSubtotal(items);
         const result = validateCoupon(code, subtotal);
@@ -170,16 +208,28 @@ export function CartProvider({ children }: CartProviderProps) {
         if (result.valid && result.coupon && result.discount !== undefined) {
             setAppliedCoupon(result.coupon);
             setCouponDiscount(result.discount);
+
+            toast.success(`Cupom ${result.coupon.code} aplicado!`, {
+                icon: '🎉',
+                description: `Você ganhou R$ ${result.discount.toFixed(2)} de desconto`,
+            });
+
             return { success: true };
         }
 
         return { success: false, error: result.error };
     }, [items]);
 
+    // Remover cupom
     const removeCoupon = useCallback(() => {
+        const couponCode = appliedCoupon?.code;
         setAppliedCoupon(null);
         setCouponDiscount(0);
-    }, []);
+
+        if (couponCode) {
+            toast.info(`Cupom ${couponCode} removido`);
+        }
+    }, [appliedCoupon]);
 
     const totalItems = calculateTotalItems(items);
     const totalPrice = calculateSubtotal(items);
