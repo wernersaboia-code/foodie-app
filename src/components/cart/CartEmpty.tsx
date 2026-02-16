@@ -1,0 +1,28 @@
+// src/components/cart/CartEmpty.tsx
+import Link from 'next/link';
+import { ShoppingBag } from 'lucide-react';
+
+export default function CartEmpty() {
+    return (
+        <div className="flex flex-col items-center justify-center py-16 px-4">
+            <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+                <ShoppingBag size={40} className="text-gray-400" />
+            </div>
+
+            <h2 className="text-xl font-bold text-gray-900 mb-2">
+                Seu carrinho está vazio
+            </h2>
+
+            <p className="text-gray-500 text-center mb-8 max-w-sm">
+                Adicione itens de um restaurante para começar seu pedido
+            </p>
+
+            <Link
+                href="/"
+                className="bg-[#00A082] text-white px-8 py-4 rounded-full font-semibold hover:bg-[#008F74] transition-colors"
+            >
+                Explorar restaurantes
+            </Link>
+        </div>
+    );
+}
