@@ -25,13 +25,7 @@ export default function HomePage() {
     ): void => {
         setIsLoading(true);
         updateFilter(key, value);
-
-        // Simular loading
-        const timeout = setTimeout(() => {
-            setIsLoading(false);
-        }, 300);
-
-        return () => clearTimeout(timeout);
+        setTimeout(() => setIsLoading(false), 300);
     }, [updateFilter]);
 
     // Handler separado para busca (sem loading visual)
