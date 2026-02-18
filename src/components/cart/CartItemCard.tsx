@@ -17,17 +17,14 @@ export default function CartItemCard({ item }: CartItemCardProps) {
     const { menuItem, quantity, observation } = item;
     const totalPrice = menuItem.price * quantity;
 
-    const handleDecrease = (): void => {
-        updateQuantity(menuItem.id, quantity - 1, observation);
-    };
-
-    const handleIncrease = (): void => {
-        updateQuantity(menuItem.id, quantity + 1, observation);
-    };
-
     return (
-        <div className="flex gap-4 p-4 bg-white rounded-2xl border border-gray-100">
-            {/* Imagem */}
+        <div
+            className="flex gap-4 p-4 rounded-2xl border transition-colors"
+            style={{
+                backgroundColor: 'var(--color-bg-card)',
+                borderColor: 'var(--color-border)'
+            }}
+        >
             <div className="relative w-20 h-20 rounded-xl overflow-hidden shrink-0">
                 <Image
                     src={menuItem.image}
@@ -37,43 +34,51 @@ export default function CartItemCard({ item }: CartItemCardProps) {
                 />
             </div>
 
-            {/* Info */}
             <div className="flex-1 min-w-0">
-                <h3 className="font-semibold truncate">{menuItem.name}</h3>
+                <h3
+                    className="font-semibold truncate"
+                    style={{ color: 'var(--color-text)' }}
+                >
+                    {menuItem.name}
+                </h3>
 
-                {/* Observação */}
                 {observation && (
-                    <p className="text-sm text-gray-400 truncate mt-0.5">
+                    <p
+                        className="text-sm truncate mt-0.5"
+                        style={{ color: 'var(--color-text-secondary)' }}
+                    >
                         📝 {observation}
                     </p>
                 )}
 
-                {/* Preço e Controles */}
                 <div className="flex items-center justify-between mt-3">
                     <p className="text-[#00A082] font-bold text-lg">
                         {formatPrice(totalPrice)}
                     </p>
 
-                    {/* Controles de quantidade */}
                     <div className="flex items-center gap-2">
                         <button
-                            onClick={handleDecrease}
-                            className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
+                            onClick={() => updateQuantity(menuItem.id, quantity - 1, observation)}
+                            className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+                            style={{ backgroundColor: 'var(--color-bg-secondary)' }}
                             aria-label="Diminuir quantidade"
                         >
                             {quantity === 1 ? (
                                 <Trash2 size={16} className="text-red-500" />
                             ) : (
-                                <Minus size={16} />
+                                <Minus size={16} style={{ color: 'var(--color-text)' }} />
                             )}
                         </button>
 
-                        <span className="font-bold text-lg w-8 text-center">
+                        <span
+                            className="font-bold text-lg w-8 text-center"
+                            style={{ color: 'var(--color-text)' }}
+                        >
               {quantity}
             </span>
 
                         <button
-                            onClick={handleIncrease}
+                            onClick={() => updateQuantity(menuItem.id, quantity + 1, observation)}
                             className="w-8 h-8 rounded-full bg-[#00A082] text-white flex items-center justify-center hover:bg-[#008F74] transition-colors"
                             aria-label="Aumentar quantidade"
                         >

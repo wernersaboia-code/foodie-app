@@ -11,29 +11,31 @@ export default function CartSummary() {
     const restaurant = restaurantId ? getRestaurantById(restaurantId) : null;
     const deliveryFee = restaurant?.deliveryFee || 0;
 
-    // Verificar se o cupom é de frete grátis
     const isFreeDeliveryCoupon = appliedCoupon?.code === 'FRETEGRATIS';
     const actualDeliveryFee = isFreeDeliveryCoupon ? 0 : deliveryFee;
 
     const finalTotal = totalPrice + actualDeliveryFee - couponDiscount;
 
     return (
-        <div className="bg-white rounded-2xl border border-gray-100 p-4 space-y-3">
-            {/* Subtotal */}
-            <div className="flex justify-between text-gray-600">
+        <div
+            className="rounded-2xl border p-4 space-y-3 transition-colors"
+            style={{
+                backgroundColor: 'var(--color-bg-card)',
+                borderColor: 'var(--color-border)'
+            }}
+        >
+            <div className="flex justify-between" style={{ color: 'var(--color-text-secondary)' }}>
                 <span>Subtotal</span>
-                <span>{formatPrice(totalPrice)}</span>
+                <span style={{ color: 'var(--color-text)' }}>{formatPrice(totalPrice)}</span>
             </div>
 
-            {/* Taxa de entrega */}
-            <div className="flex justify-between text-gray-600">
+            <div className="flex justify-between" style={{ color: 'var(--color-text-secondary)' }}>
                 <span>Taxa de entrega</span>
-                <span className={actualDeliveryFee === 0 ? 'text-[#00A082] font-medium' : ''}>
+                <span className={actualDeliveryFee === 0 ? 'text-[#00A082] font-medium' : ''} style={{ color: actualDeliveryFee === 0 ? undefined : 'var(--color-text)' }}>
           {actualDeliveryFee === 0 ? 'Grátis' : formatPrice(actualDeliveryFee)}
         </span>
             </div>
 
-            {/* Desconto do cupom */}
             {couponDiscount > 0 && (
                 <div className="flex justify-between text-[#00A082]">
                     <span>Desconto ({appliedCoupon?.code})</span>
@@ -41,20 +43,19 @@ export default function CartSummary() {
                 </div>
             )}
 
-            {/* Frete grátis do cupom */}
             {isFreeDeliveryCoupon && deliveryFee > 0 && (
                 <div className="flex justify-between text-[#00A082]">
-                    <span>Frete Grátis ({appliedCoupon?.code})</span>
+                    <span>Frete Grátis</span>
                     <span>-{formatPrice(deliveryFee)}</span>
                 </div>
             )}
 
-            {/* Divisor */}
-            <div className="border-t border-gray-100 pt-3">
-                <div className="flex justify-between font-bold text-lg">
-                    <span>Total</span>
-                    <span>{formatPrice(Math.max(0, finalTotal))}</span>
-                </div>
+            <div
+                className="flex justify-between font-bold text-lg pt-3 border-t"
+                style={{ borderColor: 'var(--color-border)' }}
+            >
+                <span style={{ color: 'var(--color-text)' }}>Total</span>
+                <span style={{ color: 'var(--color-text)' }}>{formatPrice(Math.max(0, finalTotal))}</span>
             </div>
         </div>
     );

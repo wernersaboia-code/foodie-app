@@ -9,9 +9,9 @@ import { formatCouponSuccessMessage } from '@/lib/utils/coupon.utils';
 export default function CouponInput() {
     const { appliedCoupon, couponDiscount, applyCoupon, removeCoupon } = useCart();
 
-    const [code, setCode] = useState('');
+    const [code, setCode] = useState<string>('');
     const [error, setError] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const handleApplyCoupon = async (): Promise<void> => {
         if (!code.trim()) return;
@@ -19,7 +19,6 @@ export default function CouponInput() {
         setIsLoading(true);
         setError(null);
 
-        // Simular delay de API
         await new Promise((resolve) => setTimeout(resolve, 500));
 
         const result = applyCoupon(code.trim());
@@ -33,21 +32,19 @@ export default function CouponInput() {
         setIsLoading(false);
     };
 
-    const handleRemoveCoupon = (): void => {
-        removeCoupon();
-        setError(null);
-    };
-
     const handleKeyDown = (e: React.KeyboardEvent): void => {
         if (e.key === 'Enter') {
             handleApplyCoupon();
         }
     };
 
-    // Se já tem cupom aplicado
+    // Estado: Cupom aplicado com sucesso
     if (appliedCoupon) {
         return (
-            <div className="bg-[#E6F7F4] rounded-2xl p-4">
+            <div
+                className="rounded-2xl p-4 transition-colors"
+                style={{ backgroundColor: 'var(--color-primary-light)' }}
+            >
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-[#00A082] rounded-full flex items-center justify-center">
@@ -57,15 +54,19 @@ export default function CouponInput() {
                             <p className="font-semibold text-[#00A082]">
                                 {appliedCoupon.code}
                             </p>
-                            <p className="text-sm text-gray-600">
+                            <p
+                                className="text-sm"
+                                style={{ color: 'var(--color-text-secondary)' }}
+                            >
                                 {formatCouponSuccessMessage(couponDiscount)}
                             </p>
                         </div>
                     </div>
 
                     <button
-                        onClick={handleRemoveCoupon}
-                        className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                        onClick={removeCoupon}
+                        className="p-2 transition-colors hover:opacity-70"
+                        style={{ color: 'var(--color-text-tertiary)' }}
                         aria-label="Remover cupom"
                     >
                         <X size={20} />
@@ -75,10 +76,17 @@ export default function CouponInput() {
         );
     }
 
+    // Estado: Input de cupom
     return (
-        <div className="bg-white rounded-2xl border border-gray-100 p-4">
+        <div
+            className="rounded-2xl border p-4 transition-colors"
+            style={{
+                backgroundColor: 'var(--color-bg-card)',
+                borderColor: 'var(--color-border)',
+            }}
+        >
             <div className="flex items-center gap-3">
-                <Tag size={24} className="text-gray-400 shrink-0" />
+                <Tag size={24} style={{ color: 'var(--color-text-secondary)' }} />
 
                 <input
                     type="text"
@@ -89,7 +97,8 @@ export default function CouponInput() {
                     }}
                     onKeyDown={handleKeyDown}
                     placeholder="Digite seu cupom"
-                    className="flex-1 text-sm font-medium placeholder:text-gray-400 focus:outline-none"
+                    className="flex-1 text-sm font-medium focus:outline-none bg-transparent"
+                    style={{ color: 'var(--color-text)' }}
                     disabled={isLoading}
                 />
 
@@ -106,9 +115,10 @@ export default function CouponInput() {
                 </button>
             </div>
 
-            {/* Erro */}
             {error && (
-                <p className="text-red-500 text-sm mt-2 ml-9">{error}</p>
+                <p className="text-sm mt-2 ml-9" style={{ color: 'var(--color-error)' }}>
+                    {error}
+                </p>
             )}
         </div>
     );

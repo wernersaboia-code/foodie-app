@@ -9,7 +9,8 @@ import { formatPrice } from '@/lib/utils/format.utils';
 import { CHECKOUT_MESSAGES } from '@/lib/constants/checkout.constants';
 
 export default function OrderSummary() {
-    const { items, restaurantId, totalPrice, appliedCoupon, couponDiscount } = useCart();
+    const { items, restaurantId, totalPrice, appliedCoupon, couponDiscount } =
+        useCart();
 
     const restaurant = restaurantId ? getRestaurantById(restaurantId) : null;
     const deliveryFee = restaurant?.deliveryFee || 0;
@@ -20,16 +21,38 @@ export default function OrderSummary() {
     const finalTotal = totalPrice + actualDeliveryFee - couponDiscount;
 
     return (
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        <div
+            className="rounded-2xl border overflow-hidden transition-colors"
+            style={{
+                backgroundColor: 'var(--color-bg-card)',
+                borderColor: 'var(--color-border)',
+            }}
+        >
             {/* Header */}
-            <div className="flex items-center gap-3 p-4 border-b border-gray-100 bg-gray-50">
+            <div
+                className="flex items-center gap-3 p-4 border-b transition-colors"
+                style={{
+                    backgroundColor: 'var(--color-bg-secondary)',
+                    borderColor: 'var(--color-border)',
+                }}
+            >
                 <div className="w-10 h-10 bg-[#00A082] rounded-full flex items-center justify-center">
                     <ShoppingBag size={20} className="text-white" />
                 </div>
                 <div>
-                    <h2 className="font-bold text-lg">{CHECKOUT_MESSAGES.summaryTitle}</h2>
+                    <h2
+                        className="font-bold text-lg"
+                        style={{ color: 'var(--color-text)' }}
+                    >
+                        {CHECKOUT_MESSAGES.summaryTitle}
+                    </h2>
                     {restaurant && (
-                        <p className="text-sm text-gray-500">{restaurant.name}</p>
+                        <p
+                            className="text-sm"
+                            style={{ color: 'var(--color-text-secondary)' }}
+                        >
+                            {restaurant.name}
+                        </p>
                     )}
                 </div>
             </div>
@@ -53,18 +76,27 @@ export default function OrderSummary() {
 
                         {/* Info */}
                         <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm truncate">
+                            <p
+                                className="font-medium text-sm truncate"
+                                style={{ color: 'var(--color-text)' }}
+                            >
                                 {item.quantity}x {item.menuItem.name}
                             </p>
                             {item.observation && (
-                                <p className="text-xs text-gray-400 truncate">
+                                <p
+                                    className="text-xs truncate"
+                                    style={{ color: 'var(--color-text-tertiary)' }}
+                                >
                                     📝 {item.observation}
                                 </p>
                             )}
                         </div>
 
                         {/* Preço */}
-                        <p className="font-medium text-sm">
+                        <p
+                            className="font-medium text-sm"
+                            style={{ color: 'var(--color-text)' }}
+                        >
                             {formatPrice(item.menuItem.price * item.quantity)}
                         </p>
                     </div>
@@ -72,34 +104,64 @@ export default function OrderSummary() {
             </div>
 
             {/* Totais */}
-            <div className="p-4 border-t border-gray-100 space-y-2">
-                <div className="flex justify-between text-sm text-gray-600">
-                    <span>Subtotal</span>
-                    <span>{formatPrice(totalPrice)}</span>
+            <div
+                className="p-4 border-t space-y-2"
+                style={{ borderColor: 'var(--color-border)' }}
+            >
+                <div className="flex justify-between text-sm">
+                    <span style={{ color: 'var(--color-text-secondary)' }}>
+                        Subtotal
+                    </span>
+                    <span style={{ color: 'var(--color-text-secondary)' }}>
+                        {formatPrice(totalPrice)}
+                    </span>
                 </div>
 
-                <div className="flex justify-between text-sm text-gray-600">
-                    <span>Taxa de entrega</span>
-                    <span className={actualDeliveryFee === 0 ? 'text-[#00A082]' : ''}>
-            {actualDeliveryFee === 0 ? 'Grátis' : formatPrice(actualDeliveryFee)}
-          </span>
+                <div className="flex justify-between text-sm">
+                    <span style={{ color: 'var(--color-text-secondary)' }}>
+                        Taxa de entrega
+                    </span>
+                    <span
+                        style={{
+                            color:
+                                actualDeliveryFee === 0
+                                    ? 'var(--color-primary)'
+                                    : 'var(--color-text-secondary)',
+                        }}
+                    >
+                        {actualDeliveryFee === 0
+                            ? 'Grátis'
+                            : formatPrice(actualDeliveryFee)}
+                    </span>
                 </div>
 
                 {couponDiscount > 0 && (
-                    <div className="flex justify-between text-sm text-[#00A082]">
+                    <div
+                        className="flex justify-between text-sm"
+                        style={{ color: 'var(--color-primary)' }}
+                    >
                         <span>Desconto ({appliedCoupon?.code})</span>
                         <span>-{formatPrice(couponDiscount)}</span>
                     </div>
                 )}
 
                 {isFreeDeliveryCoupon && deliveryFee > 0 && (
-                    <div className="flex justify-between text-sm text-[#00A082]">
+                    <div
+                        className="flex justify-between text-sm"
+                        style={{ color: 'var(--color-primary)' }}
+                    >
                         <span>Frete Grátis</span>
                         <span>-{formatPrice(deliveryFee)}</span>
                     </div>
                 )}
 
-                <div className="flex justify-between font-bold text-lg pt-2 border-t border-gray-100">
+                <div
+                    className="flex justify-between font-bold text-lg pt-2 border-t"
+                    style={{
+                        color: 'var(--color-text)',
+                        borderColor: 'var(--color-border)',
+                    }}
+                >
                     <span>Total</span>
                     <span>{formatPrice(Math.max(0, finalTotal))}</span>
                 </div>

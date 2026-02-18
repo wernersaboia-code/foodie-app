@@ -4,6 +4,7 @@ import { Inter } from 'next/font/google';
 import { Toaster } from 'sonner';
 import './globals.css';
 import { CartProvider } from '@/contexts/CartContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 import ServiceWorkerRegister from '@/components/pwa/ServiceWorkerRegister';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -52,22 +53,25 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="pt-BR">
+        <html lang="pt-BR" suppressHydrationWarning>
         <body className={inter.className}>
-        <CartProvider>
-            {children}
-            <Toaster
-                position="top-center"
-                richColors
-                toastOptions={{
-                    style: {
-                        background: '#fff',
-                        border: '1px solid #E8E8E8',
-                    },
-                }}
-            />
-            <ServiceWorkerRegister />
-        </CartProvider>
+        <ThemeProvider>
+            <CartProvider>
+                {children}
+                <Toaster
+                    position="top-center"
+                    richColors
+                    toastOptions={{
+                        style: {
+                            background: 'var(--color-bg-card)',
+                            border: '1px solid var(--color-border)',
+                            color: 'var(--color-text)',
+                        },
+                    }}
+                />
+                <ServiceWorkerRegister />
+            </CartProvider>
+        </ThemeProvider>
         </body>
         </html>
     );

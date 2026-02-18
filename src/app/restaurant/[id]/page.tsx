@@ -23,7 +23,10 @@ export default async function RestaurantPage({ params }: RestaurantPageProps) {
     const menuCategories = getMenuCategoriesByRestaurant(id);
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div
+            className="min-h-screen transition-colors"
+            style={{ backgroundColor: 'var(--color-bg-secondary)' }}
+        >
             {/* Header com imagem */}
             <div className="relative h-64 md:h-80">
                 <Image
@@ -38,7 +41,11 @@ export default async function RestaurantPage({ params }: RestaurantPageProps) {
                 {/* Botão voltar */}
                 <Link
                     href="/"
-                    className="absolute top-4 left-4 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg hover:bg-gray-100 transition-colors"
+                    className="absolute top-4 left-4 w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-colors hover:opacity-80"
+                    style={{
+                        backgroundColor: 'var(--color-bg-card)',
+                        color: 'var(--color-text)',
+                    }}
                     aria-label="Voltar para home"
                 >
                     <ArrowLeft size={20} />
@@ -79,13 +86,24 @@ export default async function RestaurantPage({ params }: RestaurantPageProps) {
                     {/* Menu */}
                     <div className="flex-1">
                         {/* Navegação por categoria */}
-                        <nav className="sticky top-0 bg-gray-50 py-4 mb-6 border-b border-gray-200 z-10">
-                            <div className="flex gap-2 overflow-x-auto pb-2">
+                        <nav
+                            className="sticky top-0 py-4 mb-6 border-b z-10 transition-colors"
+                            style={{
+                                backgroundColor: 'var(--color-bg-secondary)',
+                                borderColor: 'var(--color-border)'
+                            }}
+                        >
+                            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                                 {menuCategories.map((category) => (
                                     <a
                                         key={category.name}
                                         href={`#${category.name.replace(/\s+/g, '-')}`}
-                                        className="px-4 py-2 bg-white rounded-full text-sm font-medium whitespace-nowrap hover:bg-[#00A082] hover:text-white transition-colors border border-gray-200"
+                                        className="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors border"
+                                        style={{
+                                            backgroundColor: 'var(--color-bg-card)',
+                                            borderColor: 'var(--color-border)',
+                                            color: 'var(--color-text)'
+                                        }}
                                     >
                                         {category.name}
                                     </a>
@@ -100,7 +118,12 @@ export default async function RestaurantPage({ params }: RestaurantPageProps) {
                                 id={category.name.replace(/\s+/g, '-')}
                                 className="mb-8"
                             >
-                                <h2 className="text-xl font-bold mb-4">{category.name}</h2>
+                                <h2
+                                    className="text-xl font-bold mb-4"
+                                    style={{ color: 'var(--color-text)' }}
+                                >
+                                    {category.name}
+                                </h2>
                                 <div className="grid gap-4">
                                     {category.items.map((item) => (
                                         <MenuItemCard key={item.id} item={item} />

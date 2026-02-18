@@ -1,13 +1,13 @@
 // src/components/cart/CartSidebar.tsx
 'use client';
 
+import Link from 'next/link';
 import { Minus, Plus, Trash2, ShoppingBag, X } from 'lucide-react';
 import Image from 'next/image';
 import { useCart } from '@/hooks/useCart';
 import { getRestaurantById } from '@/data/mock';
 import { formatPrice } from '@/lib/utils/format.utils';
 import { CART_MESSAGES } from '@/lib/constants/cart.constants';
-import Link from 'next/link';
 
 export default function CartSidebar() {
     const {
@@ -25,13 +25,26 @@ export default function CartSidebar() {
 
     if (items.length === 0) {
         return (
-            <div className="bg-white rounded-2xl p-6 border border-gray-200">
+            <div
+                className="rounded-2xl p-6 border transition-colors"
+                style={{
+                    backgroundColor: 'var(--color-bg-card)',
+                    borderColor: 'var(--color-border)'
+                }}
+            >
                 <div className="text-center py-8">
-                    <ShoppingBag size={48} className="mx-auto text-gray-300 mb-4" />
-                    <h3 className="font-semibold text-lg mb-2">
+                    <ShoppingBag
+                        size={48}
+                        className="mx-auto mb-4"
+                        style={{ color: 'var(--color-text-secondary)' }}
+                    />
+                    <h3
+                        className="font-semibold text-lg mb-2"
+                        style={{ color: 'var(--color-text)' }}
+                    >
                         {CART_MESSAGES.emptyCart}
                     </h3>
-                    <p className="text-gray-500 text-sm">
+                    <p style={{ color: 'var(--color-text-secondary)' }} className="text-sm">
                         {CART_MESSAGES.emptyCartDescription}
                     </p>
                 </div>
@@ -40,21 +53,41 @@ export default function CartSidebar() {
     }
 
     return (
-        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+        <div
+            className="rounded-2xl border overflow-hidden transition-colors"
+            style={{
+                backgroundColor: 'var(--color-bg-card)',
+                borderColor: 'var(--color-border)'
+            }}
+        >
             {/* Header */}
-            <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+            <div
+                className="p-4 border-b flex items-center justify-between"
+                style={{ borderColor: 'var(--color-border)' }}
+            >
                 <div>
-                    <h3 className="font-bold text-lg">Seu Pedido</h3>
+                    <h3
+                        className="font-bold text-lg"
+                        style={{ color: 'var(--color-text)' }}
+                    >
+                        Seu Pedido
+                    </h3>
                     {restaurant && (
-                        <p className="text-sm text-gray-500">{restaurant.name}</p>
+                        <p
+                            className="text-sm"
+                            style={{ color: 'var(--color-text-secondary)' }}
+                        >
+                            {restaurant.name}
+                        </p>
                     )}
                 </div>
                 <button
                     onClick={() => setIsCartOpen(false)}
-                    className="lg:hidden p-2 hover:bg-gray-100 rounded-full"
+                    className="lg:hidden p-2 rounded-full transition-colors"
+                    style={{ backgroundColor: 'var(--color-bg-secondary)' }}
                     aria-label="Fechar carrinho"
                 >
-                    <X size={20} />
+                    <X size={20} style={{ color: 'var(--color-text)' }} />
                 </button>
             </div>
 
@@ -75,13 +108,19 @@ export default function CartSidebar() {
 
                             {/* Info */}
                             <div className="flex-1 min-w-0">
-                                <h4 className="font-medium text-sm truncate">
+                                <h4
+                                    className="font-medium text-sm truncate"
+                                    style={{ color: 'var(--color-text)' }}
+                                >
                                     {item.menuItem.name}
                                 </h4>
 
                                 {/* Observação */}
                                 {item.observation && (
-                                    <p className="text-xs text-gray-400 truncate mt-0.5">
+                                    <p
+                                        className="text-xs truncate mt-0.5"
+                                        style={{ color: 'var(--color-text-secondary)' }}
+                                    >
                                         📝 {item.observation}
                                     </p>
                                 )}
@@ -96,17 +135,21 @@ export default function CartSidebar() {
                                         onClick={() =>
                                             updateQuantity(item.menuItem.id, item.quantity - 1, item.observation)
                                         }
-                                        className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
+                                        className="w-7 h-7 rounded-full flex items-center justify-center transition-colors"
+                                        style={{ backgroundColor: 'var(--color-bg-secondary)' }}
                                         aria-label="Diminuir quantidade"
                                     >
                                         {item.quantity === 1 ? (
                                             <Trash2 size={14} className="text-red-500" />
                                         ) : (
-                                            <Minus size={14} />
+                                            <Minus size={14} style={{ color: 'var(--color-text)' }} />
                                         )}
                                     </button>
 
-                                    <span className="font-medium text-sm w-6 text-center">
+                                    <span
+                                        className="font-medium text-sm w-6 text-center"
+                                        style={{ color: 'var(--color-text)' }}
+                                    >
                     {item.quantity}
                   </span>
 
@@ -127,21 +170,30 @@ export default function CartSidebar() {
             </div>
 
             {/* Resumo */}
-            <div className="p-4 border-t border-gray-100 bg-gray-50">
+            <div
+                className="p-4 border-t transition-colors"
+                style={{
+                    backgroundColor: 'var(--color-bg-secondary)',
+                    borderColor: 'var(--color-border)'
+                }}
+            >
                 <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                        <span className="text-gray-500">Subtotal</span>
-                        <span>{formatPrice(totalPrice)}</span>
+                        <span style={{ color: 'var(--color-text-secondary)' }}>Subtotal</span>
+                        <span style={{ color: 'var(--color-text)' }}>{formatPrice(totalPrice)}</span>
                     </div>
                     <div className="flex justify-between">
-                        <span className="text-gray-500">Taxa de entrega</span>
-                        <span className={deliveryFee === 0 ? 'text-[#00A082]' : ''}>
+                        <span style={{ color: 'var(--color-text-secondary)' }}>Taxa de entrega</span>
+                        <span className={deliveryFee === 0 ? 'text-[#00A082]' : ''} style={{ color: deliveryFee === 0 ? undefined : 'var(--color-text)' }}>
               {formatPrice(deliveryFee)}
             </span>
                     </div>
-                    <div className="flex justify-between font-bold text-lg pt-2 border-t border-gray-200">
-                        <span>Total</span>
-                        <span>{formatPrice(finalTotal)}</span>
+                    <div
+                        className="flex justify-between font-bold text-lg pt-2 border-t"
+                        style={{ borderColor: 'var(--color-border)' }}
+                    >
+                        <span style={{ color: 'var(--color-text)' }}>Total</span>
+                        <span style={{ color: 'var(--color-text)' }}>{formatPrice(finalTotal)}</span>
                     </div>
                 </div>
 

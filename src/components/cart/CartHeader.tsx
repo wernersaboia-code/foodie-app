@@ -18,26 +18,36 @@ export default function CartHeader() {
     };
 
     return (
-        <header className="sticky top-0 z-50 bg-white border-b border-gray-100">
+        <header
+            className="sticky top-0 z-50 border-b transition-colors"
+            style={{
+                backgroundColor: 'var(--color-bg-card)',
+                borderColor: 'var(--color-border)'
+            }}
+        >
             <div className="max-w-3xl mx-auto px-4 py-4">
                 <div className="flex items-center justify-between">
-                    {/* Voltar */}
                     <Link
                         href="/"
-                        className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+                        className="flex items-center gap-2 transition-colors"
+                        style={{ color: 'var(--color-text-secondary)' }}
                     >
                         <ArrowLeft size={24} />
                         <span className="hidden sm:inline font-medium">Voltar</span>
                     </Link>
 
-                    {/* Título */}
-                    <h1 className="text-xl font-bold">Seu Carrinho</h1>
+                    <h1
+                        className="text-xl font-bold"
+                        style={{ color: 'var(--color-text)' }}
+                    >
+                        Seu Carrinho
+                    </h1>
 
-                    {/* Limpar */}
                     <button
                         onClick={handleClearCart}
                         disabled={items.length === 0}
-                        className="p-2 text-gray-400 hover:text-red-500 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        className="p-2 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        style={{ color: 'var(--color-text-secondary)' }}
                         aria-label="Limpar carrinho"
                     >
                         <Trash2 size={24} />

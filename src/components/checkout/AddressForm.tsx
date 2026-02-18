@@ -17,14 +17,39 @@ export default function AddressForm({ data, errors, onChange }: AddressFormProps
         onChange('zipCode', formatZipCode(value));
     };
 
+    const inputBaseStyles = "w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00A082] transition-colors";
+
+    const getInputStyle = (hasError: boolean) => ({
+        backgroundColor: 'var(--color-bg-input)',
+        color: 'var(--color-text)',
+        borderColor: hasError ? 'var(--color-error)' : 'var(--color-border)',
+    });
+
     return (
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        <div
+            className="rounded-2xl border overflow-hidden transition-colors"
+            style={{
+                backgroundColor: 'var(--color-bg-card)',
+                borderColor: 'var(--color-border)',
+            }}
+        >
             {/* Header */}
-            <div className="flex items-center gap-3 p-4 border-b border-gray-100 bg-gray-50">
+            <div
+                className="flex items-center gap-3 p-4 border-b transition-colors"
+                style={{
+                    backgroundColor: 'var(--color-bg-secondary)',
+                    borderColor: 'var(--color-border)',
+                }}
+            >
                 <div className="w-10 h-10 bg-[#00A082] rounded-full flex items-center justify-center">
                     <MapPin size={20} className="text-white" />
                 </div>
-                <h2 className="font-bold text-lg">{CHECKOUT_MESSAGES.addressTitle}</h2>
+                <h2
+                    className="font-bold text-lg"
+                    style={{ color: 'var(--color-text)' }}
+                >
+                    {CHECKOUT_MESSAGES.addressTitle}
+                </h2>
             </div>
 
             {/* Formulário */}
@@ -32,7 +57,10 @@ export default function AddressForm({ data, errors, onChange }: AddressFormProps
                 {/* Rua e Número */}
                 <div className="grid grid-cols-3 gap-4">
                     <div className="col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label
+                            className="block text-sm font-medium mb-1"
+                            style={{ color: 'var(--color-text-secondary)' }}
+                        >
                             Rua *
                         </label>
                         <input
@@ -40,17 +68,21 @@ export default function AddressForm({ data, errors, onChange }: AddressFormProps
                             value={data.street}
                             onChange={(e) => onChange('street', e.target.value)}
                             placeholder="Nome da rua"
-                            className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00A082] ${
-                                errors.street ? 'border-red-500' : 'border-gray-200'
-                            }`}
+                            className={inputBaseStyles}
+                            style={getInputStyle(!!errors.street)}
                         />
                         {errors.street && (
-                            <p className="text-red-500 text-sm mt-1">{errors.street}</p>
+                            <p className="text-sm mt-1" style={{ color: 'var(--color-error)' }}>
+                                {errors.street}
+                            </p>
                         )}
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label
+                            className="block text-sm font-medium mb-1"
+                            style={{ color: 'var(--color-text-secondary)' }}
+                        >
                             Número *
                         </label>
                         <input
@@ -58,34 +90,47 @@ export default function AddressForm({ data, errors, onChange }: AddressFormProps
                             value={data.number}
                             onChange={(e) => onChange('number', e.target.value)}
                             placeholder="123"
-                            className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00A082] ${
-                                errors.number ? 'border-red-500' : 'border-gray-200'
-                            }`}
+                            className={inputBaseStyles}
+                            style={getInputStyle(!!errors.number)}
                         />
                         {errors.number && (
-                            <p className="text-red-500 text-sm mt-1">{errors.number}</p>
+                            <p className="text-sm mt-1" style={{ color: 'var(--color-error)' }}>
+                                {errors.number}
+                            </p>
                         )}
                     </div>
                 </div>
 
                 {/* Complemento */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label
+                        className="block text-sm font-medium mb-1"
+                        style={{ color: 'var(--color-text-secondary)' }}
+                    >
                         Complemento
-                        <span className="text-gray-400 font-normal ml-1">(opcional)</span>
+                        <span
+                            className="font-normal ml-1"
+                            style={{ color: 'var(--color-text-tertiary)' }}
+                        >
+                            (opcional)
+                        </span>
                     </label>
                     <input
                         type="text"
                         value={data.complement || ''}
                         onChange={(e) => onChange('complement', e.target.value)}
                         placeholder="Apto, bloco, referência..."
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00A082]"
+                        className={inputBaseStyles}
+                        style={getInputStyle(false)}
                     />
                 </div>
 
                 {/* Bairro */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label
+                        className="block text-sm font-medium mb-1"
+                        style={{ color: 'var(--color-text-secondary)' }}
+                    >
                         Bairro *
                     </label>
                     <input
@@ -93,19 +138,23 @@ export default function AddressForm({ data, errors, onChange }: AddressFormProps
                         value={data.neighborhood}
                         onChange={(e) => onChange('neighborhood', e.target.value)}
                         placeholder="Nome do bairro"
-                        className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00A082] ${
-                            errors.neighborhood ? 'border-red-500' : 'border-gray-200'
-                        }`}
+                        className={inputBaseStyles}
+                        style={getInputStyle(!!errors.neighborhood)}
                     />
                     {errors.neighborhood && (
-                        <p className="text-red-500 text-sm mt-1">{errors.neighborhood}</p>
+                        <p className="text-sm mt-1" style={{ color: 'var(--color-error)' }}>
+                            {errors.neighborhood}
+                        </p>
                     )}
                 </div>
 
                 {/* Cidade, Estado e CEP */}
                 <div className="grid grid-cols-6 gap-4">
                     <div className="col-span-3">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label
+                            className="block text-sm font-medium mb-1"
+                            style={{ color: 'var(--color-text-secondary)' }}
+                        >
                             Cidade *
                         </label>
                         <input
@@ -113,25 +162,28 @@ export default function AddressForm({ data, errors, onChange }: AddressFormProps
                             value={data.city}
                             onChange={(e) => onChange('city', e.target.value)}
                             placeholder="Sua cidade"
-                            className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00A082] ${
-                                errors.city ? 'border-red-500' : 'border-gray-200'
-                            }`}
+                            className={inputBaseStyles}
+                            style={getInputStyle(!!errors.city)}
                         />
                         {errors.city && (
-                            <p className="text-red-500 text-sm mt-1">{errors.city}</p>
+                            <p className="text-sm mt-1" style={{ color: 'var(--color-error)' }}>
+                                {errors.city}
+                            </p>
                         )}
                     </div>
 
                     <div className="col-span-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label
+                            className="block text-sm font-medium mb-1"
+                            style={{ color: 'var(--color-text-secondary)' }}
+                        >
                             UF *
                         </label>
                         <select
                             value={data.state}
                             onChange={(e) => onChange('state', e.target.value)}
-                            className={`w-full px-3 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00A082] bg-white ${
-                                errors.state ? 'border-red-500' : 'border-gray-200'
-                            }`}
+                            className="w-full px-3 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00A082] transition-colors"
+                            style={getInputStyle(!!errors.state)}
                         >
                             <option value="">-</option>
                             {BRAZILIAN_STATES.map((state) => (
@@ -141,12 +193,17 @@ export default function AddressForm({ data, errors, onChange }: AddressFormProps
                             ))}
                         </select>
                         {errors.state && (
-                            <p className="text-red-500 text-sm mt-1">{errors.state}</p>
+                            <p className="text-sm mt-1" style={{ color: 'var(--color-error)' }}>
+                                {errors.state}
+                            </p>
                         )}
                     </div>
 
                     <div className="col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label
+                            className="block text-sm font-medium mb-1"
+                            style={{ color: 'var(--color-text-secondary)' }}
+                        >
                             CEP *
                         </label>
                         <input
@@ -155,12 +212,13 @@ export default function AddressForm({ data, errors, onChange }: AddressFormProps
                             onChange={(e) => handleZipCodeChange(e.target.value)}
                             placeholder="00000-000"
                             maxLength={9}
-                            className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00A082] ${
-                                errors.zipCode ? 'border-red-500' : 'border-gray-200'
-                            }`}
+                            className={inputBaseStyles}
+                            style={getInputStyle(!!errors.zipCode)}
                         />
                         {errors.zipCode && (
-                            <p className="text-red-500 text-sm mt-1">{errors.zipCode}</p>
+                            <p className="text-sm mt-1" style={{ color: 'var(--color-error)' }}>
+                                {errors.zipCode}
+                            </p>
                         )}
                     </div>
                 </div>

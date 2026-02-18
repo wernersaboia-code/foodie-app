@@ -31,7 +31,6 @@ export default function MenuItemModal({
     const [quantity, setQuantity] = useState(initialQuantity);
     const [observation, setObservation] = useState(initialObservation);
 
-    // Reset ao abrir modal
     useEffect(() => {
         if (isOpen) {
             setQuantity(initialQuantity);
@@ -39,7 +38,6 @@ export default function MenuItemModal({
         }
     }, [isOpen, initialQuantity, initialObservation]);
 
-    // Fechar com ESC
     useEffect(() => {
         const handleEsc = (e: KeyboardEvent) => {
             if (e.key === 'Escape') onClose();
@@ -85,7 +83,10 @@ export default function MenuItemModal({
             className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm"
             onClick={handleBackdropClick}
         >
-            <div className="bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-3xl max-h-[90vh] overflow-hidden animate-slide-up">
+            <div
+                className="w-full sm:max-w-lg sm:rounded-2xl rounded-t-3xl max-h-[90vh] overflow-hidden animate-slide-up"
+                style={{ backgroundColor: 'var(--color-bg-card)' }}
+            >
                 {/* Imagem do Item */}
                 <div className="relative h-48 sm:h-64">
                     <Image
@@ -98,7 +99,11 @@ export default function MenuItemModal({
                     {/* Botão Fechar */}
                     <button
                         onClick={onClose}
-                        className="absolute top-4 right-4 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg hover:bg-gray-100 transition-colors"
+                        className="absolute top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-colors hover:opacity-80"
+                        style={{
+                            backgroundColor: 'var(--color-bg-card)',
+                            color: 'var(--color-text)',
+                        }}
                         aria-label="Fechar"
                     >
                         <X size={20} />
@@ -115,8 +120,18 @@ export default function MenuItemModal({
                 {/* Conteúdo */}
                 <div className="p-6">
                     {/* Nome e Descrição */}
-                    <h2 className="text-2xl font-bold mb-2">{item.name}</h2>
-                    <p className="text-gray-500 mb-4">{item.description}</p>
+                    <h2
+                        className="text-2xl font-bold mb-2"
+                        style={{ color: 'var(--color-text)' }}
+                    >
+                        {item.name}
+                    </h2>
+                    <p
+                        className="mb-4"
+                        style={{ color: 'var(--color-text-secondary)' }}
+                    >
+                        {item.description}
+                    </p>
 
                     {/* Preço Unitário */}
                     <p className="text-[#00A082] font-bold text-xl mb-6">
@@ -125,9 +140,15 @@ export default function MenuItemModal({
 
                     {/* Observações */}
                     <div className="mb-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label
+                            className="block text-sm font-medium mb-2"
+                            style={{ color: 'var(--color-text)' }}
+                        >
                             {MENU_MESSAGES.observation}
-                            <span className="text-gray-400 font-normal ml-2">
+                            <span
+                                className="font-normal ml-2"
+                                style={{ color: 'var(--color-text-secondary)' }}
+                            >
                 ({MENU_MESSAGES.optional})
               </span>
                         </label>
@@ -137,36 +158,58 @@ export default function MenuItemModal({
                             placeholder={MENU_MESSAGES.observationPlaceholder}
                             maxLength={MENU_ITEM_CONFIG.maxObservationLength}
                             rows={2}
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00A082] focus:border-transparent resize-none"
+                            className="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00A082] focus:border-transparent resize-none transition-colors"
+                            style={{
+                                backgroundColor: 'var(--color-bg-secondary)',
+                                borderColor: 'var(--color-border)',
+                                color: 'var(--color-text)'
+                            }}
                         />
-                        <p className="text-xs text-gray-400 mt-1 text-right">
+                        <p
+                            className="text-xs mt-1 text-right"
+                            style={{ color: 'var(--color-text-secondary)' }}
+                        >
                             {observation.length}/{MENU_ITEM_CONFIG.maxObservationLength}
                         </p>
                     </div>
                 </div>
 
                 {/* Footer Fixo */}
-                <div className="sticky bottom-0 bg-white border-t border-gray-100 p-4">
+                <div
+                    className="sticky bottom-0 border-t p-4 transition-colors"
+                    style={{
+                        backgroundColor: 'var(--color-bg-card)',
+                        borderColor: 'var(--color-border)'
+                    }}
+                >
                     <div className="flex items-center gap-4">
                         {/* Controle de Quantidade */}
-                        <div className="flex items-center gap-3 bg-gray-100 rounded-full p-1">
+                        <div
+                            className="flex items-center gap-3 rounded-full p-1"
+                            style={{ backgroundColor: 'var(--color-bg-secondary)' }}
+                        >
                             <button
                                 onClick={() => handleQuantityChange(-1)}
                                 disabled={quantity <= MENU_ITEM_CONFIG.minQuantity}
-                                className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-10 h-10 rounded-full flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                style={{ color: 'var(--color-text)' }}
                                 aria-label="Diminuir quantidade"
                             >
                                 <Minus size={20} />
                             </button>
 
-                            <span className="font-bold text-lg w-8 text-center">
+                            <span
+                                className="font-bold text-lg w-8 text-center"
+                                style={{ color: 'var(--color-text)' }}
+                            >
                 {quantity}
               </span>
 
                             <button
                                 onClick={() => handleQuantityChange(1)}
                                 disabled={quantity >= MENU_ITEM_CONFIG.maxQuantity}
-                                className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-10 h-10 rounded-full flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                style={{ color: 'var(--color-text)' }}
                                 aria-label="Aumentar quantidade"
                             >
                                 <Plus size={20} />

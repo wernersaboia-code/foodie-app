@@ -1,95 +1,101 @@
 /* src/app/globals.css */
 @import "tailwindcss";
 
-@theme {
-  --font-sans: 'Inter', system-ui, sans-serif;
+/* ============================================ */
+/* TEMA CLARO (padrão)                          */
+/* ============================================ */
+:root {
+  /* Backgrounds */
+  --color-bg: #FFFFFF;
+  --color-bg-secondary: #F6F6F6;
+  --color-bg-tertiary: #E8E8E8;
+  --color-bg-card: #FFFFFF;
+  --color-bg-input: #FFFFFF;
+  --color-bg-hover: #F0F0F0;
+  --color-bg-modal-overlay: rgba(0, 0, 0, 0.5);
 
-  --color-primary-50: #E6F7F4;
-  --color-primary-100: #B3E8DE;
-  --color-primary-500: #00A082;
-  --color-primary-600: #008F74;
-  --color-primary-700: #007D66;
+  /* Textos */
+  --color-text: #1A1A1A;
+  --color-text-secondary: #6B6B6B;
+  --color-text-tertiary: #9B9B9B;
+  --color-text-inverse: #FFFFFF;
 
-  --color-dark-900: #1A1A1A;
-  --color-dark-800: #2D2D2D;
-  --color-dark-700: #3D3D3D;
+  /* Bordas */
+  --color-border: #E8E8E8;
+  --color-border-secondary: #F0F0F0;
+  --color-border-focus: #00A082;
+
+  /* Brand (não mudam entre temas) */
+  --color-primary: #00A082;
+  --color-primary-hover: #008F74;
+  --color-primary-active: #007D66;
+  --color-primary-light: #E6F7F4;
+
+  /* Feedback (não mudam entre temas) */
+  --color-success: #00A082;
+  --color-warning: #FFAA00;
+  --color-error: #FF4444;
+  --color-error-light: #FFF0F0;
+  --color-error-border: #FFCCCC;
+  --color-rating: #FACC15;
+
+  /* Sombras */
+  --color-shadow: rgba(0, 0, 0, 0.1);
+  --shadow-sm: 0 1px 3px var(--color-shadow);
+  --shadow-md: 0 4px 12px var(--color-shadow);
+  --shadow-lg: 0 8px 24px var(--color-shadow);
 }
 
-@layer base {
-  body {
-    font-family: var(--font-sans);
-    color: var(--color-dark-900);
-    background-color: #ffffff;
-  }
+/* ============================================ */
+/* TEMA ESCURO                                  */
+/* ============================================ */
+.dark {
+  /* Backgrounds */
+  --color-bg: #0F0F0F;
+  --color-bg-secondary: #1A1A1A;
+  --color-bg-tertiary: #2D2D2D;
+  --color-bg-card: #1A1A1A;
+  --color-bg-input: #2D2D2D;
+  --color-bg-hover: #2D2D2D;
+  --color-bg-modal-overlay: rgba(0, 0, 0, 0.7);
+
+  /* Textos */
+  --color-text: #F5F5F5;
+  --color-text-secondary: #A0A0A0;
+  --color-text-tertiary: #6B6B6B;
+  --color-text-inverse: #1A1A1A;
+
+  /* Bordas */
+  --color-border: #2D2D2D;
+  --color-border-secondary: #3D3D3D;
+  --color-border-focus: #00A082;
+
+  /* Brand - Primary fica levemente mais vibrante no dark */
+  --color-primary: #00A082;
+  --color-primary-hover: #00B894;
+  --color-primary-active: #00D4A8;
+  --color-primary-light: rgba(0, 160, 130, 0.15);
+
+  /* Feedback - Ajustados para dark */
+  --color-error-light: rgba(255, 68, 68, 0.15);
+  --color-error-border: rgba(255, 68, 68, 0.3);
+
+  /* Sombras - Mais intensas no dark */
+  --color-shadow: rgba(0, 0, 0, 0.4);
 }
 
-/* Componentes como classes normais */
-.btn-primary {
-  background-color: var(--color-primary-500);
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 9999px;
-  font-weight: 600;
-  transition: background-color 0.2s;
+/* ============================================ */
+/* APLICAR VARIÁVEIS                            */
+/* ============================================ */
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-.btn-primary:hover {
-  background-color: var(--color-primary-600);
-}
-
-.card {
-  background-color: white;
-  border-radius: 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: box-shadow 0.2s;
-}
-
-.card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.input-search {
-  width: 100%;
-  background-color: #F6F6F6;
-  border-radius: 9999px;
-  padding: 0.75rem 1rem 0.75rem 3rem;
-}
-
-.input-search:focus {
-  outline: none;
-  ring: 2px solid var(--color-primary-500);
-}
-
-/* Scrollbar customizada */
-::-webkit-scrollbar {
-  height: 4px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #ccc;
-  border-radius: 4px;
-}
-
-@keyframes slide-up {
-  from {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.animate-slide-up {
-  animation: slide-up 0.3s ease-out forwards;
-}
-
-/* Animações */
+/* ============================================ */
+/* ANIMAÇÕES                                    */
+/* ============================================ */
 @keyframes slide-up {
   from {
     transform: translateY(100%);
@@ -133,7 +139,7 @@
   animation: scale-in 0.2s ease-out forwards;
 }
 
-/* Esconder scrollbar mas manter funcionalidade */
+/* Esconder scrollbar */
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;

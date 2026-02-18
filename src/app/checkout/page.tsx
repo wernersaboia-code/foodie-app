@@ -9,7 +9,11 @@ import { useOrders } from '@/hooks/useOrders';
 import { getRestaurantById } from '@/data/mock';
 import { formatPrice } from '@/lib/utils/format.utils';
 import { createOrder } from '@/lib/utils/checkout.utils';
-import { addressSchema, paymentSchema, AddressFormData } from '@/lib/validations/checkout.validations';
+import {
+    addressSchema,
+    paymentSchema,
+    AddressFormData,
+} from '@/lib/validations/checkout.validations';
 import { PaymentMethod, Address } from '@/types';
 import { CHECKOUT_MESSAGES } from '@/lib/constants/checkout.constants';
 import CheckoutHeader from '@/components/checkout/CheckoutHeader';
@@ -20,7 +24,14 @@ import CartEmpty from '@/components/cart/CartEmpty';
 
 export default function CheckoutPage() {
     const router = useRouter();
-    const { items, restaurantId, totalPrice, appliedCoupon, couponDiscount, clearCart } = useCart();
+    const {
+        items,
+        restaurantId,
+        totalPrice,
+        appliedCoupon,
+        couponDiscount,
+        clearCart,
+    } = useCart();
     const { addOrder } = useOrders();
 
     // Estado do endereço
@@ -33,15 +44,19 @@ export default function CheckoutPage() {
         state: '',
         zipCode: '',
     });
-    const [addressErrors, setAddressErrors] = useState<Partial<Record<keyof AddressFormData, string>>>({});
+    const [addressErrors, setAddressErrors] = useState<
+        Partial<Record<keyof AddressFormData, string>>
+    >({});
 
     // Estado do pagamento
-    const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
+    const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(
+        null
+    );
     const [changeFor, setChangeFor] = useState<string>('');
     const [paymentError, setPaymentError] = useState<string>('');
 
     // Estado de loading
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const restaurant = restaurantId ? getRestaurantById(restaurantId) : null;
     const deliveryFee = restaurant?.deliveryFee || 0;
@@ -52,9 +67,11 @@ export default function CheckoutPage() {
     const finalTotal = totalPrice + actualDeliveryFee - couponDiscount;
 
     // Handlers
-    const handleAddressChange = (field: keyof AddressFormData, value: string): void => {
+    const handleAddressChange = (
+        field: keyof AddressFormData,
+        value: string
+    ): void => {
         setAddressData((prev) => ({ ...prev, [field]: value }));
-        // Limpar erro do campo
         if (addressErrors[field]) {
             setAddressErrors((prev) => ({ ...prev, [field]: undefined }));
         }
@@ -63,7 +80,6 @@ export default function CheckoutPage() {
     const handlePaymentMethodChange = (method: PaymentMethod): void => {
         setPaymentMethod(method);
         setPaymentError('');
-        // Limpar troco se não for dinheiro
         if (method !== 'CASH') {
             setChangeFor('');
         }
@@ -140,7 +156,10 @@ export default function CheckoutPage() {
     // Carrinho vazio
     if (items.length === 0) {
         return (
-            <div className="min-h-screen bg-gray-50">
+            <div
+                className="min-h-screen transition-colors"
+                style={{ backgroundColor: 'var(--color-bg-secondary)' }}
+            >
                 <CheckoutHeader />
                 <CartEmpty />
             </div>
@@ -148,7 +167,10 @@ export default function CheckoutPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-32">
+        <div
+            className="min-h-screen pb-32 transition-colors"
+            style={{ backgroundColor: 'var(--color-bg-secondary)' }}
+        >
             <CheckoutHeader />
 
             <main className="max-w-3xl mx-auto px-4 py-6 space-y-6">
@@ -173,12 +195,30 @@ export default function CheckoutPage() {
             </main>
 
             {/* Footer Fixo */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4">
+            <div
+                className="fixed bottom-0 left-0 right-0 border-t p-4 transition-colors"
+                style={{
+                    backgroundColor: 'var(--color-bg-card)',
+                    borderColor: 'var(--color-border)',
+                }}
+            >
                 <div className="max-w-3xl mx-auto">
                     <button
                         onClick={handleSubmit}
                         disabled={isLoading}
-                        className="w-full bg-[#00A082] text-white py-4 rounded-full font-semibold hover:bg-[#008F74] transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="w-full py-4 rounded-full font-semibold transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        style={{
+                            backgroundColor: 'var(--color-primary)',
+                            color: 'var(--color-text-inverse)',
+                        }}
+                        onMouseEnter={(e) =>
+                            (e.currentTarget.style.backgroundColor =
+                                'var(--color-primary-hover)')
+                        }
+                        onMouseLeave={(e) =>
+                            (e.currentTarget.style.backgroundColor =
+                                'var(--color-primary)')
+                        }
                     >
                         {isLoading ? (
                             <>
@@ -187,7 +227,8 @@ export default function CheckoutPage() {
                             </>
                         ) : (
                             <>
-                                {CHECKOUT_MESSAGES.confirmButton} • {formatPrice(Math.max(0, finalTotal))}
+                                {CHECKOUT_MESSAGES.confirmButton} •{' '}
+                                {formatPrice(Math.max(0, finalTotal))}
                             </>
                         )}
                     </button>

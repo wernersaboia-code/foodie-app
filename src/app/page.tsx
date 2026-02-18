@@ -18,7 +18,6 @@ export default function HomePage() {
     const [isLoading, setIsLoading] = useState(false);
     const { filters, updateFilter, resetFilters, filteredRestaurants, hasActiveFilters } = useFilters(restaurants);
 
-    // Handler para mudança de filtros com loading
     const handleFilterChange = useCallback(<K extends keyof ActiveFilters>(
         key: K,
         value: ActiveFilters[K]
@@ -28,12 +27,10 @@ export default function HomePage() {
         setTimeout(() => setIsLoading(false), 300);
     }, [updateFilter]);
 
-    // Handler separado para busca (sem loading visual)
     const handleSearchChange = useCallback((value: string): void => {
         updateFilter('search', value);
     }, [updateFilter]);
 
-    // Handler para reset
     const handleReset = useCallback((): void => {
         setIsLoading(true);
         resetFilters();
@@ -41,7 +38,10 @@ export default function HomePage() {
     }, [resetFilters]);
 
     return (
-        <main className="min-h-screen bg-gray-50 pb-20 md:pb-0">
+        <main
+            className="min-h-screen pb-20 md:pb-0 transition-colors"
+            style={{ backgroundColor: 'var(--color-bg-secondary)' }}
+        >
             <Header />
 
             <div className="max-w-7xl mx-auto px-4 py-4">
@@ -53,7 +53,7 @@ export default function HomePage() {
                     />
                 </div>
 
-                {/* Banner (só mostra se não tem busca ativa) */}
+                {/* Banner */}
                 <AnimatePresence>
                     {!filters.search && !hasActiveFilters && (
                         <motion.div
@@ -79,14 +79,17 @@ export default function HomePage() {
                 {/* Resultados */}
                 <section>
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-xl font-bold">
+                        <h2
+                            className="text-xl font-bold"
+                            style={{ color: 'var(--color-text)' }}
+                        >
                             {filters.search
                                 ? `Resultados para "${filters.search}"`
                                 : filters.category
                                     ? filters.category
                                     : 'Restaurantes'}
                         </h2>
-                        <span className="text-sm text-gray-500">
+                        <span style={{ color: 'var(--color-text-secondary)' }} className="text-sm">
               {filteredRestaurants.length} encontrados
             </span>
                     </div>
@@ -119,10 +122,13 @@ export default function HomePage() {
                             className="text-center py-16"
                         >
                             <div className="text-6xl mb-4">🔍</div>
-                            <h3 className="text-xl font-semibold mb-2">
+                            <h3
+                                className="text-xl font-semibold mb-2"
+                                style={{ color: 'var(--color-text)' }}
+                            >
                                 Nenhum restaurante encontrado
                             </h3>
-                            <p className="text-gray-500 mb-6">
+                            <p style={{ color: 'var(--color-text-secondary)' }} className="mb-6">
                                 Tente ajustar seus filtros ou buscar por outro termo
                             </p>
                             <button

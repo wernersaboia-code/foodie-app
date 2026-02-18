@@ -39,9 +39,7 @@ export default function RestaurantCard({ restaurant, index = 0 }: RestaurantCard
         const newState = toggleFavorite(id);
 
         if (newState) {
-            toast.success(`${name} adicionado aos favoritos`, {
-                icon: '❤️',
-            });
+            toast.success(`${name} adicionado aos favoritos`, { icon: '❤️' });
         } else {
             toast.info(`${name} removido dos favoritos`);
         }
@@ -56,13 +54,26 @@ export default function RestaurantCard({ restaurant, index = 0 }: RestaurantCard
             transition={{ duration: 0.3, delay: index * 0.05 }}
         >
             <Link href={`/restaurant/${id}`}>
-                <article className={`card overflow-hidden cursor-pointer group relative ${
-                    !isOpen ? 'opacity-60' : ''
-                }`}>
+                <article
+                    className={`rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer group relative ${
+                        !isOpen ? 'opacity-60' : ''
+                    }`}
+                    style={{
+                        backgroundColor: 'var(--color-bg-card)',
+                        borderColor: 'var(--color-border)',
+                        borderWidth: '1px'
+                    }}
+                >
                     {/* Imagem */}
-                    <div className="relative h-40 overflow-hidden bg-gray-100">
+                    <div
+                        className="relative h-40 overflow-hidden"
+                        style={{ backgroundColor: 'var(--color-bg-secondary)' }}
+                    >
                         {!isImageLoaded && (
-                            <div className="absolute inset-0 animate-pulse bg-gray-200" />
+                            <div
+                                className="absolute inset-0 animate-pulse"
+                                style={{ backgroundColor: 'var(--color-bg-secondary)' }}
+                            />
                         )}
                         <Image
                             src={image}
@@ -97,24 +108,31 @@ export default function RestaurantCard({ restaurant, index = 0 }: RestaurantCard
                         <motion.button
                             whileTap={{ scale: 0.9 }}
                             onClick={handleFavoriteClick}
-                            className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-shadow z-10"
+                            className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-shadow z-10"
+                            style={{ backgroundColor: 'var(--color-bg-card)' }}
                             aria-label={favorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
                         >
                             <Heart
                                 size={18}
-                                className={favorite ? 'fill-red-500 text-red-500' : 'text-gray-400'}
+                                className={favorite ? 'fill-red-500 text-red-500' : ''}
+                                style={{ color: favorite ? undefined : 'var(--color-text-secondary)' }}
                             />
                         </motion.button>
                     </div>
 
                     {/* Info */}
                     <div className="p-4">
-                        <h3 className="font-semibold text-lg mb-1 truncate">{name}</h3>
+                        <h3
+                            className="font-semibold text-lg mb-1 truncate"
+                            style={{ color: 'var(--color-text)' }}
+                        >
+                            {name}
+                        </h3>
 
-                        <div className="flex items-center gap-3 text-sm text-gray-500">
+                        <div className="flex items-center gap-3 text-sm" style={{ color: 'var(--color-text-secondary)' }}>
                             <div className="flex items-center gap-1">
                                 <Star size={16} className="text-yellow-400 fill-yellow-400" />
-                                <span className="text-[#1A1A1A] font-medium">{rating}</span>
+                                <span style={{ color: 'var(--color-text)' }} className="font-medium">{rating}</span>
                             </div>
                             <span>•</span>
                             <span>{deliveryTime}</span>
@@ -122,7 +140,13 @@ export default function RestaurantCard({ restaurant, index = 0 }: RestaurantCard
                             <span>{formatPrice(deliveryFee)}</span>
                         </div>
 
-                        <span className="inline-block mt-2 text-xs bg-gray-100 px-2 py-1 rounded-full text-gray-600">
+                        <span
+                            className="inline-block mt-2 text-xs px-2 py-1 rounded-full"
+                            style={{
+                                backgroundColor: 'var(--color-bg-secondary)',
+                                color: 'var(--color-text-secondary)'
+                            }}
+                        >
               {category}
             </span>
                     </div>

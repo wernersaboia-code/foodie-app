@@ -27,12 +27,21 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
         <>
             <article
                 onClick={handleOpenModal}
-                className="flex gap-4 p-4 bg-white rounded-2xl border border-gray-100 hover:border-[#00A082] hover:shadow-md transition-all group cursor-pointer"
+                className="flex gap-4 p-4 rounded-2xl border transition-all cursor-pointer group hover:shadow-md"
+                style={{
+                    backgroundColor: 'var(--color-bg-card)',
+                    borderColor: 'var(--color-border)'
+                }}
             >
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                     <div className="flex items-start gap-2">
-                        <h3 className="font-semibold text-lg">{item.name}</h3>
+                        <h3
+                            className="font-semibold text-lg"
+                            style={{ color: 'var(--color-text)' }}
+                        >
+                            {item.name}
+                        </h3>
                         {item.popular && (
                             <span className="shrink-0 bg-orange-100 text-orange-600 text-xs px-2 py-0.5 rounded-full font-medium">
                 🔥 Popular
@@ -40,7 +49,10 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
                         )}
                     </div>
 
-                    <p className="text-gray-500 text-sm mt-1 line-clamp-2">
+                    <p
+                        className="text-sm mt-1 line-clamp-2"
+                        style={{ color: 'var(--color-text-secondary)' }}
+                    >
                         {item.description}
                     </p>
 

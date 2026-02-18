@@ -6,14 +6,22 @@ interface SkeletonProps {
 export function Skeleton({ className = '' }: SkeletonProps) {
     return (
         <div
-            className={`animate-pulse bg-gray-200 rounded-lg ${className}`}
+            className={`animate-pulse rounded-lg ${className}`}
+            style={{ backgroundColor: 'var(--color-bg-secondary)' }}
         />
     );
 }
 
 export function RestaurantCardSkeleton() {
     return (
-        <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
+        <div
+            className="rounded-2xl overflow-hidden"
+            style={{
+                backgroundColor: 'var(--color-bg-card)',
+                borderColor: 'var(--color-border)',
+                borderWidth: '1px'
+            }}
+        >
             <Skeleton className="h-40 w-full rounded-none" />
             <div className="p-4 space-y-3">
                 <Skeleton className="h-6 w-3/4" />
@@ -26,7 +34,14 @@ export function RestaurantCardSkeleton() {
 
 export function MenuItemSkeleton() {
     return (
-        <div className="flex gap-4 p-4 bg-white rounded-2xl border border-gray-100">
+        <div
+            className="flex gap-4 p-4 rounded-2xl"
+            style={{
+                backgroundColor: 'var(--color-bg-card)',
+                borderColor: 'var(--color-border)',
+                borderWidth: '1px'
+            }}
+        >
             <div className="flex-1 space-y-3">
                 <Skeleton className="h-6 w-3/4" />
                 <Skeleton className="h-4 w-full" />

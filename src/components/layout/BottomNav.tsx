@@ -19,14 +19,19 @@ export default function BottomNav() {
     const pathname = usePathname();
     const { totalItems } = useCart();
 
-    // Não mostrar em certas páginas
     const hiddenPaths = ['/checkout', '/order'];
     const shouldHide = hiddenPaths.some((path) => pathname.startsWith(path));
 
     if (shouldHide) return null;
 
     return (
-        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 md:hidden z-50">
+        <nav
+            className="fixed bottom-0 left-0 right-0 border-t md:hidden z-50 transition-colors"
+            style={{
+                backgroundColor: 'var(--color-bg-card)',
+                borderColor: 'var(--color-border)'
+            }}
+        >
             <div className="flex items-center justify-around py-2">
                 {navItems.map((item) => {
                     const Icon = item.icon;
@@ -42,7 +47,8 @@ export default function BottomNav() {
                             <div className="relative">
                                 <Icon
                                     size={24}
-                                    className={isActive ? 'text-[#00A082]' : 'text-gray-400'}
+                                    className={isActive ? 'text-[#00A082]' : ''}
+                                    style={{ color: isActive ? undefined : 'var(--color-text-secondary)' }}
                                 />
                                 {showBadge && (
                                     <motion.span
@@ -55,9 +61,8 @@ export default function BottomNav() {
                                 )}
                             </div>
                             <span
-                                className={`text-xs ${
-                                    isActive ? 'text-[#00A082] font-medium' : 'text-gray-400'
-                                }`}
+                                className={`text-xs ${isActive ? 'text-[#00A082] font-medium' : ''}`}
+                                style={{ color: isActive ? undefined : 'var(--color-text-secondary)' }}
                             >
                 {item.label}
               </span>
