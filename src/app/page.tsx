@@ -3,8 +3,6 @@
 
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Header from '@/components/layout/Header';
-import BottomNav from '@/components/layout/BottomNav';
 import PromoBanner from '@/components/home/PromoBanner';
 import SearchBar from '@/components/home/SearchBar';
 import FilterBar from '@/components/home/FilterBar';
@@ -38,12 +36,10 @@ export default function HomePage() {
     }, [resetFilters]);
 
     return (
-        <main
-            className="min-h-screen pb-20 md:pb-0 transition-colors"
+        <div
+            className="transition-colors"
             style={{ backgroundColor: 'var(--color-bg-secondary)' }}
         >
-            <Header />
-
             <div className="max-w-7xl mx-auto px-4 py-4">
                 {/* Busca */}
                 <div className="mb-4">
@@ -90,8 +86,8 @@ export default function HomePage() {
                                     : 'Restaurantes'}
                         </h2>
                         <span style={{ color: 'var(--color-text-secondary)' }} className="text-sm">
-              {filteredRestaurants.length} encontrados
-            </span>
+                            {filteredRestaurants.length} encontrados
+                        </span>
                     </div>
 
                     {isLoading ? (
@@ -141,8 +137,6 @@ export default function HomePage() {
                     )}
                 </section>
             </div>
-
-            <BottomNav />
-        </main>
+        </div>
     );
 }

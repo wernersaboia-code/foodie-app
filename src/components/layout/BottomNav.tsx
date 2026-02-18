@@ -19,6 +19,10 @@ export default function BottomNav() {
     const pathname = usePathname();
     const { totalItems } = useCart();
 
+    // Hide on auth pages
+    const isAuthPage = pathname.startsWith('/sign')
+    if (isAuthPage) return null
+
     const hiddenPaths = ['/checkout', '/order'];
     const shouldHide = hiddenPaths.some((path) => pathname.startsWith(path));
 

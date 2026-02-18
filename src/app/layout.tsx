@@ -5,6 +5,9 @@ import { Toaster } from 'sonner';
 import './globals.css';
 import { CartProvider } from '@/contexts/CartContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
+import Header from '@/components/layout/Header';
+import BottomNav from '@/components/layout/BottomNav';
+import { CartSidebarGlobal } from '@/components/cart/CartSidebarGlobal';
 import ServiceWorkerRegister from '@/components/pwa/ServiceWorkerRegister';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -57,7 +60,12 @@ export default function RootLayout({
         <body className={inter.className}>
         <ThemeProvider>
             <CartProvider>
-                {children}
+                <Header />
+                <main className="min-h-screen pb-20 lg:pb-0">
+                    {children}
+                </main>
+                <BottomNav />
+                <CartSidebarGlobal />
                 <Toaster
                     position="top-center"
                     richColors

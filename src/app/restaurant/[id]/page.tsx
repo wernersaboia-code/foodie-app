@@ -1,8 +1,7 @@
 // src/app/restaurant/[id]/page.tsx
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
-import Link from 'next/link';
-import { Star, Clock, Bike, ArrowLeft } from 'lucide-react';
+import { Star, Clock, Bike } from 'lucide-react';
 import { getRestaurantById, getMenuCategoriesByRestaurant } from '@/data/mock';
 import { formatPrice } from '@/lib/utils/format.utils';
 import MenuItemCard from '@/components/restaurant/MenuItemCard';
@@ -27,8 +26,8 @@ export default async function RestaurantPage({ params }: RestaurantPageProps) {
             className="min-h-screen transition-colors"
             style={{ backgroundColor: 'var(--color-bg-secondary)' }}
         >
-            {/* Header com imagem */}
-            <div className="relative h-64 md:h-80">
+            {/* Hero Image */}
+            <div className="relative h-48 md:h-72">
                 <Image
                     src={restaurant.image}
                     alt={restaurant.name}
@@ -38,28 +37,15 @@ export default async function RestaurantPage({ params }: RestaurantPageProps) {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
 
-                {/* Botão voltar */}
-                <Link
-                    href="/"
-                    className="absolute top-4 left-4 w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-colors hover:opacity-80"
-                    style={{
-                        backgroundColor: 'var(--color-bg-card)',
-                        color: 'var(--color-text)',
-                    }}
-                    aria-label="Voltar para home"
-                >
-                    <ArrowLeft size={20} />
-                </Link>
-
-                {/* Info do restaurante */}
+                {/* Restaurant Info (overlay) */}
                 <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                    <h1 className="text-3xl md:text-4xl font-bold mb-2">
+                    <h1 className="mb-2 text-3xl font-bold md:text-4xl">
                         {restaurant.name}
                     </h1>
 
                     <div className="flex flex-wrap items-center gap-4 text-sm">
                         <div className="flex items-center gap-1">
-                            <Star size={18} className="text-yellow-400 fill-yellow-400" />
+                            <Star size={18} className="fill-yellow-400 text-yellow-400" />
                             <span className="font-semibold">{restaurant.rating}</span>
                         </div>
 
@@ -73,24 +59,24 @@ export default async function RestaurantPage({ params }: RestaurantPageProps) {
                             <span>{formatPrice(restaurant.deliveryFee)}</span>
                         </div>
 
-                        <span className="bg-white/20 px-3 py-1 rounded-full">
-              {restaurant.category}
-            </span>
+                        <span className="rounded-full bg-white/20 px-3 py-1">
+                            {restaurant.category}
+                        </span>
                     </div>
                 </div>
             </div>
 
-            {/* Conteúdo */}
-            <div className="max-w-7xl mx-auto px-4 py-6">
+            {/* Content */}
+            <div className="mx-auto max-w-7xl px-4 py-6">
                 <div className="flex gap-8">
                     {/* Menu */}
                     <div className="flex-1">
-                        {/* Navegação por categoria */}
+                        {/* Category Navigation */}
                         <nav
-                            className="sticky top-0 py-4 mb-6 border-b z-10 transition-colors"
+                            className="sticky top-16 z-10 mb-6 border-b py-4 transition-colors"
                             style={{
                                 backgroundColor: 'var(--color-bg-secondary)',
-                                borderColor: 'var(--color-border)'
+                                borderColor: 'var(--color-border)',
                             }}
                         >
                             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
@@ -98,11 +84,11 @@ export default async function RestaurantPage({ params }: RestaurantPageProps) {
                                     <a
                                         key={category.name}
                                         href={`#${category.name.replace(/\s+/g, '-')}`}
-                                        className="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors border"
+                                        className="whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition-colors"
                                         style={{
                                             backgroundColor: 'var(--color-bg-card)',
                                             borderColor: 'var(--color-border)',
-                                            color: 'var(--color-text)'
+                                            color: 'var(--color-text)',
                                         }}
                                     >
                                         {category.name}
@@ -111,7 +97,7 @@ export default async function RestaurantPage({ params }: RestaurantPageProps) {
                             </div>
                         </nav>
 
-                        {/* Lista de itens por categoria */}
+                        {/* Menu Items by Category */}
                         {menuCategories.map((category) => (
                             <section
                                 key={category.name}
@@ -119,7 +105,7 @@ export default async function RestaurantPage({ params }: RestaurantPageProps) {
                                 className="mb-8"
                             >
                                 <h2
-                                    className="text-xl font-bold mb-4"
+                                    className="mb-4 text-xl font-bold"
                                     style={{ color: 'var(--color-text)' }}
                                 >
                                     {category.name}
@@ -133,9 +119,9 @@ export default async function RestaurantPage({ params }: RestaurantPageProps) {
                         ))}
                     </div>
 
-                    {/* Sidebar do Carrinho - Desktop */}
-                    <aside className="hidden lg:block w-96">
-                        <div className="sticky top-4">
+                    {/* Cart Sidebar - Desktop */}
+                    <aside className="hidden w-96 lg:block">
+                        <div className="sticky top-20">
                             <CartSidebar />
                         </div>
                     </aside>

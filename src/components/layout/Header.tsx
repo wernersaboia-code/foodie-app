@@ -1,119 +1,208 @@
 // src/components/layout/Header.tsx
-'use client';
+'use client'
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { MapPin, Search, User, ShoppingBag } from 'lucide-react';
-import { useCart } from '@/hooks/useCart';
-import ThemeToggle from '@/components/ui/ThemeToggle';
+import { useState, useEffect } from 'react'
+import { useRouter, usePathname } from 'next/navigation'
+import Link from 'next/link'
+import { ShoppingBag, MapPin, User, ArrowLeft } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { useCart } from '@/hooks/useCart'
+import ThemeToggle from '@/components/ui/ThemeToggle'
+import { UserMenu } from '@/components/layout/UserMenu'
+import { createClient } from '@/lib/supabase/client'
+
+interface UserData {
+    id: string;
+    email: string;
+    fullName: string;
+    avatarUrl?: string;
+}
 
 export default function Header() {
-    const [address] = useState('Rua das Flores, 123');
-    const { totalItems, setIsCartOpen } = useCart();
+    const router = useRouter()
+    const pathname = usePathname()
+    const { items, totalItems, setIsCartOpen } = useCart()
+    const [user, setUser] = useState<UserData | null>(null)
+    const [isLoading, setIsLoading] = useState<boolean>(true)
+
+    // Page detection
+    const isHomePage = pathname === '/'
+    const isAuthPage = pathname.startsWith('/sign')
+    const isSubPage = !isHomePage && !isAuthPage
+
+    // Fetch user session
+    useEffect(() => {
+        const supabase = createClient()
+
+        const fetchUser = async (): Promise<void> => {
+            const { data: { user: authUser } } = await supabase.auth.getUser()
+
+            if (authUser) {
+                setUser({
+                    id: authUser.id,
+                    email: authUser.email || '',
+                    fullName: authUser.user_metadata?.full_name || '',
+                    avatarUrl: authUser.user_metadata?.avatar_url || '',
+                })
+            } else {
+                setUser(null)
+            }
+            setIsLoading(false)
+        }
+
+        fetchUser()
+
+        // Listen for auth changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+            async (_event, session) => {
+                if (session?.user) {
+                    setUser({
+                        id: session.user.id,
+                        email: session.user.email || '',
+                        fullName: session.user.user_metadata?.full_name || '',
+                        avatarUrl: session.user.user_metadata?.avatar_url || '',
+                    })
+                } else {
+                    setUser(null)
+                }
+            }
+        )
+
+        return () => subscription.unsubscribe()
+    }, [])
+
+    // Don't show header on auth pages
+    if (isAuthPage) return null
+
+    const handleGoBack = (): void => {
+        router.back()
+    }
 
     const handleCartClick = (): void => {
-        setIsCartOpen(true);
-    };
+        if (items.length > 0) {
+            setIsCartOpen(true)
+        } else {
+            router.push('/cart')
+        }
+    }
+
+    const handleSignIn = (): void => {
+        router.push('/sign-in')
+    }
 
     return (
         <header
             className="sticky top-0 z-50 border-b transition-colors"
             style={{
                 backgroundColor: 'var(--color-bg-card)',
-                borderColor: 'var(--color-border)'
+                borderColor: 'var(--color-border)',
             }}
         >
-            <div className="max-w-7xl mx-auto px-4 py-4">
+            <div className="mx-auto max-w-7xl px-4 py-3">
                 <div className="flex items-center justify-between gap-4">
-                    {/* Logo */}
-                    <Link href="/" className="flex items-center gap-2">
-                        <span className="text-2xl font-bold text-[#00A082]">🍽️ Foodie</span>
-                    </Link>
+                    {/* Left Section */}
+                    <div className="flex items-center gap-3">
+                        {isSubPage && (
+                            <button
+                                onClick={handleGoBack}
+                                className="flex h-10 w-10 items-center justify-center rounded-full transition-colors"
+                                style={{ backgroundColor: 'var(--color-bg-secondary)' }}
+                                aria-label="Voltar"
+                            >
+                                <ArrowLeft size={20} style={{ color: 'var(--color-text)' }} />
+                            </button>
+                        )}
 
-                    {/* Endereço - Desktop */}
-                    <button
-                        className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full transition-colors hover:opacity-80"
-                        style={{ backgroundColor: 'var(--color-bg-secondary)' }}
-                    >
-                        <MapPin size={20} className="text-[#00A082]" />
-                        <div className="text-left">
-                            <p style={{ color: 'var(--color-text-secondary)' }} className="text-xs">
-                                Entregar em
-                            </p>
-                            <p style={{ color: 'var(--color-text)' }} className="text-sm font-medium truncate max-w-[200px]">
-                                {address}
-                            </p>
-                        </div>
-                    </button>
-
-                    {/* Busca - Desktop */}
-                    <div className="flex-1 max-w-xl hidden md:block">
-                        <div className="relative">
-                            <Search
-                                className="absolute left-4 top-1/2 -translate-y-1/2"
-                                size={20}
-                                style={{ color: 'var(--color-text-secondary)' }}
-                            />
-                            <input
-                                type="text"
-                                placeholder="Buscar restaurantes ou pratos"
-                                className="w-full rounded-full px-4 py-3 pl-12 focus:outline-none focus:ring-2 focus:ring-[#00A082] transition-colors"
-                                style={{
-                                    backgroundColor: 'var(--color-bg-secondary)',
-                                    color: 'var(--color-text)'
-                                }}
-                            />
-                        </div>
+                        {/* Logo */}
+                        <Link href="/" className="flex items-center gap-2">
+                            <span className="text-2xl font-bold text-[#00A082]">
+                                🍽️ Foodie
+                            </span>
+                        </Link>
                     </div>
 
-                    {/* Ações */}
+                    {/* Center - Address (home only, desktop) */}
+                    {isHomePage && (
+                        <button
+                            className="hidden items-center gap-2 rounded-full px-4 py-2 transition-colors hover:opacity-80 md:flex"
+                            style={{ backgroundColor: 'var(--color-bg-secondary)' }}
+                        >
+                            <MapPin size={20} className="text-[#00A082]" />
+                            <div className="text-left">
+                                <p
+                                    className="text-xs"
+                                    style={{ color: 'var(--color-text-secondary)' }}
+                                >
+                                    Entregar em
+                                </p>
+                                <p
+                                    className="max-w-[200px] truncate text-sm font-medium"
+                                    style={{ color: 'var(--color-text)' }}
+                                >
+                                    Rua das Flores, 123
+                                </p>
+                            </div>
+                        </button>
+                    )}
+
+                    {/* Right Section */}
                     <div className="flex items-center gap-2">
                         {/* Theme Toggle */}
                         <ThemeToggle />
 
+                        {/* Cart Button */}
                         <button
                             onClick={handleCartClick}
-                            className="relative p-3 rounded-full transition-colors hover:opacity-80"
+                            className="relative rounded-full p-3 transition-colors hover:opacity-80"
                             style={{ backgroundColor: 'var(--color-bg-secondary)' }}
-                            aria-label="Abrir carrinho"
+                            aria-label={`Carrinho com ${totalItems} itens`}
                         >
                             <ShoppingBag size={24} style={{ color: 'var(--color-text)' }} />
-                            {totalItems > 0 && (
-                                <span className="absolute -top-1 -right-1 bg-[#00A082] text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                  {totalItems}
-                </span>
-                            )}
-                        </button>
-                        <button
-                            className="p-3 rounded-full transition-colors hover:opacity-80"
-                            style={{ backgroundColor: 'var(--color-bg-secondary)' }}
-                            aria-label="Menu do usuário"
-                        >
-                            <User size={24} style={{ color: 'var(--color-text)' }} />
-                        </button>
-                    </div>
-                </div>
 
-                {/* Busca - Mobile */}
-                <div className="mt-4 md:hidden">
-                    <div className="relative">
-                        <Search
-                            className="absolute left-4 top-1/2 -translate-y-1/2"
-                            size={20}
-                            style={{ color: 'var(--color-text-secondary)' }}
-                        />
-                        <input
-                            type="text"
-                            placeholder="Buscar restaurantes ou pratos"
-                            className="w-full rounded-full px-4 py-3 pl-12 focus:outline-none focus:ring-2 focus:ring-[#00A082] transition-colors"
-                            style={{
-                                backgroundColor: 'var(--color-bg-secondary)',
-                                color: 'var(--color-text)'
-                            }}
-                        />
+                            <AnimatePresence>
+                                {totalItems > 0 && (
+                                    <motion.span
+                                        initial={{ scale: 0 }}
+                                        animate={{ scale: 1 }}
+                                        exit={{ scale: 0 }}
+                                        className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#00A082] text-[10px] font-bold text-white"
+                                    >
+                                        {totalItems > 99 ? '99+' : totalItems}
+                                    </motion.span>
+                                )}
+                            </AnimatePresence>
+                        </button>
+
+                        {/* User Section */}
+                        {!isLoading && (
+                            <>
+                                {user ? (
+                                    <UserMenu
+                                        userName={user.fullName}
+                                        userEmail={user.email}
+                                        userAvatar={user.avatarUrl}
+                                    />
+                                ) : (
+                                    <button
+                                        onClick={handleSignIn}
+                                        className="flex items-center gap-2 rounded-full px-3 py-3 transition-colors hover:opacity-80 md:px-4"
+                                        style={{
+                                            backgroundColor: 'var(--color-bg-secondary)',
+                                            color: 'var(--color-text)',
+                                        }}
+                                        aria-label="Fazer login"
+                                    >
+                                        <User size={24} />
+                                        <span className="hidden text-sm font-medium md:inline">
+                                            Entrar
+                                        </span>
+                                    </button>
+                                )}
+                            </>
+                        )}
                     </div>
                 </div>
             </div>
         </header>
-    );
+    )
 }
