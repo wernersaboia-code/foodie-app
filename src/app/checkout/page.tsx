@@ -1,21 +1,23 @@
 // src/app/checkout/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { useCart } from '@/hooks/useCart';
-import { useOrders } from '@/hooks/useOrders';
 import { getRestaurantById } from '@/data/mock';
 import { formatPrice } from '@/lib/utils/format.utils';
-import { createOrder } from '@/lib/utils/checkout.utils';
 import {
     addressSchema,
     paymentSchema,
     AddressFormData,
 } from '@/lib/validations/checkout.validations';
-import { PaymentMethod, Address } from '@/types';
+import { PaymentMethod } from '@/types';
 import { CHECKOUT_MESSAGES } from '@/lib/constants/checkout.constants';
+import { createOrder as createOrderAction, type OrderItemData } from '@/actions/orders';
+import { getAddresses, type AddressData } from '@/actions/addresses';
+import { createClient } from '@/lib/supabase/client';
 import CheckoutHeader from '@/components/checkout/CheckoutHeader';
 import AddressForm from '@/components/checkout/AddressForm';
 import PaymentForm from '@/components/checkout/PaymentForm';
@@ -32,9 +34,16 @@ export default function CheckoutPage() {
         couponDiscount,
         clearCart,
     } = useCart();
-    const { addOrder } = useOrders();
 
-    // Estado do endereço
+    // Auth state
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
+    const [isCheckingAuth, setIsCheckingAuth] = useState<boolean>(true)
+
+    // Saved addresses
+    const [savedAddresses, setSavedAddresses] = useState<AddressData[]>([])
+    const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null)
+
+    // Address form state
     const [addressData, setAddressData] = useState<AddressFormData>({
         street: '',
         number: '',
@@ -48,23 +57,83 @@ export default function CheckoutPage() {
         Partial<Record<keyof AddressFormData, string>>
     >({});
 
-    // Estado do pagamento
-    const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(
-        null
-    );
+    // Payment state
+    const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
     const [changeFor, setChangeFor] = useState<string>('');
     const [paymentError, setPaymentError] = useState<string>('');
 
-    // Estado de loading
+    // Loading state
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const restaurant = restaurantId ? getRestaurantById(restaurantId) : null;
     const deliveryFee = restaurant?.deliveryFee || 0;
-
     const isFreeDeliveryCoupon = appliedCoupon?.code === 'FRETEGRATIS';
     const actualDeliveryFee = isFreeDeliveryCoupon ? 0 : deliveryFee;
-
     const finalTotal = totalPrice + actualDeliveryFee - couponDiscount;
+
+    // Check auth and load saved addresses
+    useEffect(() => {
+        const checkAuthAndLoadAddresses = async (): Promise<void> => {
+            const supabase = createClient()
+            const { data: { user } } = await supabase.auth.getUser()
+
+            if (user) {
+                setIsAuthenticated(true)
+
+                // Load saved addresses
+                const result = await getAddresses()
+                if (result.data && result.data.length > 0) {
+                    setSavedAddresses(result.data)
+
+                    // Auto-select default address
+                    const defaultAddress = result.data.find((addr) => addr.isDefault)
+                    if (defaultAddress) {
+                        setSelectedAddressId(defaultAddress.id)
+                        fillAddressForm(defaultAddress)
+                    }
+                }
+            }
+
+            setIsCheckingAuth(false)
+        }
+
+        checkAuthAndLoadAddresses()
+    }, [])
+
+    const fillAddressForm = (address: AddressData): void => {
+        setAddressData({
+            street: address.street,
+            number: address.number,
+            complement: address.complement || '',
+            neighborhood: address.neighborhood,
+            city: address.city,
+            state: address.state,
+            zipCode: address.zipCode,
+        })
+        setAddressErrors({})
+    }
+
+    const handleSelectAddress = (addressId: string): void => {
+        setSelectedAddressId(addressId)
+        const address = savedAddresses.find((a) => a.id === addressId)
+        if (address) {
+            fillAddressForm(address)
+        }
+    }
+
+    const handleUseNewAddress = (): void => {
+        setSelectedAddressId(null)
+        setAddressData({
+            street: '',
+            number: '',
+            complement: '',
+            neighborhood: '',
+            city: '',
+            state: '',
+            zipCode: '',
+        })
+        setAddressErrors({})
+    }
 
     // Handlers
     const handleAddressChange = (
@@ -74,6 +143,10 @@ export default function CheckoutPage() {
         setAddressData((prev) => ({ ...prev, [field]: value }));
         if (addressErrors[field]) {
             setAddressErrors((prev) => ({ ...prev, [field]: undefined }));
+        }
+        // If user edits, deselect saved address
+        if (selectedAddressId) {
+            setSelectedAddressId(null)
         }
     };
 
@@ -88,7 +161,6 @@ export default function CheckoutPage() {
     const validateForm = (): boolean => {
         let isValid = true;
 
-        // Validar endereço
         const addressResult = addressSchema.safeParse(addressData);
         if (!addressResult.success) {
             const errors: Partial<Record<keyof AddressFormData, string>> = {};
@@ -100,7 +172,6 @@ export default function CheckoutPage() {
             isValid = false;
         }
 
-        // Validar pagamento
         const paymentResult = paymentSchema.safeParse({
             method: paymentMethod,
             changeFor: changeFor ? parseFloat(changeFor) : undefined,
@@ -119,41 +190,60 @@ export default function CheckoutPage() {
 
         setIsLoading(true);
 
-        // Simular processamento
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+        try {
+            if (isAuthenticated) {
+                // Save to Supabase
+                const orderItems: OrderItemData[] = items.map((item) => ({
+                    menuItemId: item.menuItem.id,
+                    menuItemName: item.menuItem.name,
+                    menuItemImage: item.menuItem.image,
+                    menuItemPrice: item.menuItem.price,
+                    quantity: item.quantity,
+                    observation: item.observation,
+                }))
 
-        // Criar endereço
-        const address: Address = {
-            id: Date.now().toString(),
-            ...addressData,
-            complement: addressData.complement || undefined,
-        };
+                const result = await createOrderAction({
+                    restaurantId: restaurant.id,
+                    restaurantName: restaurant.name,
+                    items: orderItems,
+                    address: {
+                        street: addressData.street,
+                        number: addressData.number,
+                        complement: addressData.complement || undefined,
+                        neighborhood: addressData.neighborhood,
+                        city: addressData.city,
+                        state: addressData.state,
+                        zipCode: addressData.zipCode.replace(/\D/g, ''),
+                    },
+                    paymentMethod,
+                    changeFor: changeFor ? parseFloat(changeFor) : undefined,
+                    subtotal: totalPrice,
+                    deliveryFee: actualDeliveryFee,
+                    discount: couponDiscount,
+                    total: Math.max(0, finalTotal),
+                    couponCode: appliedCoupon?.code,
+                })
 
-        // Criar pedido
-        const order = createOrder(
-            items,
-            address,
-            paymentMethod,
-            totalPrice,
-            actualDeliveryFee,
-            couponDiscount,
-            restaurant.id,
-            restaurant.name,
-            restaurant.deliveryTime,
-            changeFor ? parseFloat(changeFor) : undefined
-        );
+                if (result.error) {
+                    toast.error(result.error)
+                    setIsLoading(false)
+                    return
+                }
 
-        // Salvar pedido
-        addOrder(order);
-
-        // Limpar carrinho
-        clearCart();
-
-        // Redirecionar para página de confirmação
-        router.push(`/order/${order.id}`);
+                clearCart()
+                router.push(`/order/${result.data!.id}`)
+            } else {
+                // Fallback: not authenticated — redirect to sign in
+                toast.info('Faça login para finalizar seu pedido', { icon: '🔐' })
+                router.push('/sign-in?redirectTo=/checkout')
+            }
+        } catch {
+            toast.error('Erro ao processar pedido. Tente novamente.')
+            setIsLoading(false)
+        }
     };
 
-    // Carrinho vazio
+    // Empty cart
     if (items.length === 0) {
         return (
             <div
@@ -174,14 +264,136 @@ export default function CheckoutPage() {
             <CheckoutHeader />
 
             <main className="max-w-3xl mx-auto px-4 py-6 space-y-6">
-                {/* Endereço */}
-                <AddressForm
-                    data={addressData}
-                    errors={addressErrors}
-                    onChange={handleAddressChange}
-                />
+                {/* Saved Addresses Selector */}
+                {isAuthenticated && savedAddresses.length > 0 && (
+                    <div
+                        className="rounded-2xl p-6 border transition-colors"
+                        style={{
+                            backgroundColor: 'var(--color-bg-card)',
+                            borderColor: 'var(--color-border)',
+                        }}
+                    >
+                        <h2
+                            className="font-bold text-lg mb-4"
+                            style={{ color: 'var(--color-text)' }}
+                        >
+                            📍 Endereços salvos
+                        </h2>
 
-                {/* Pagamento */}
+                        <div className="flex flex-col gap-2">
+                            {savedAddresses.map((address) => (
+                                <button
+                                    key={address.id}
+                                    onClick={() => handleSelectAddress(address.id)}
+                                    className="flex items-center gap-3 rounded-xl px-4 py-3 text-left text-sm transition-colors"
+                                    style={{
+                                        backgroundColor:
+                                            selectedAddressId === address.id
+                                                ? 'var(--color-primary-light)'
+                                                : 'var(--color-bg-secondary)',
+                                        borderWidth: '1px',
+                                        borderStyle: 'solid',
+                                        borderColor:
+                                            selectedAddressId === address.id
+                                                ? '#00A082'
+                                                : 'var(--color-border)',
+                                        color: 'var(--color-text)',
+                                    }}
+                                >
+                                    <div
+                                        className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2"
+                                        style={{
+                                            borderColor:
+                                                selectedAddressId === address.id
+                                                    ? '#00A082'
+                                                    : 'var(--color-border)',
+                                        }}
+                                    >
+                                        {selectedAddressId === address.id && (
+                                            <div className="h-2.5 w-2.5 rounded-full bg-[#00A082]" />
+                                        )}
+                                    </div>
+
+                                    <div className="flex-1">
+                                        <span className="font-medium">
+                                            {address.label === 'Casa' && '🏠 '}
+                                            {address.label === 'Trabalho' && '🏢 '}
+                                            {address.label === 'Outro' && '📍 '}
+                                            {address.label}
+                                        </span>
+                                        <p
+                                            className="mt-0.5 text-xs"
+                                            style={{ color: 'var(--color-text-secondary)' }}
+                                        >
+                                            {address.street}, {address.number}
+                                            {address.complement ? ` - ${address.complement}` : ''}
+                                            {' • '}{address.neighborhood}
+                                        </p>
+                                    </div>
+
+                                    {address.isDefault && (
+                                        <span
+                                            className="rounded-full px-2 py-0.5 text-[10px] font-medium"
+                                            style={{
+                                                backgroundColor: 'var(--color-primary-light)',
+                                                color: '#00A082',
+                                            }}
+                                        >
+                                            Padrão
+                                        </span>
+                                    )}
+                                </button>
+                            ))}
+
+                            {/* Use new address button */}
+                            <button
+                                onClick={handleUseNewAddress}
+                                className="flex items-center gap-3 rounded-xl px-4 py-3 text-left text-sm transition-colors"
+                                style={{
+                                    backgroundColor:
+                                        selectedAddressId === null
+                                            ? 'var(--color-primary-light)'
+                                            : 'var(--color-bg-secondary)',
+                                    borderWidth: '1px',
+                                    borderStyle: 'solid',
+                                    borderColor:
+                                        selectedAddressId === null
+                                            ? '#00A082'
+                                            : 'var(--color-border)',
+                                    color: 'var(--color-text)',
+                                }}
+                            >
+                                <div
+                                    className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2"
+                                    style={{
+                                        borderColor:
+                                            selectedAddressId === null
+                                                ? '#00A082'
+                                                : 'var(--color-border)',
+                                    }}
+                                >
+                                    {selectedAddressId === null && (
+                                        <div className="h-2.5 w-2.5 rounded-full bg-[#00A082]" />
+                                    )}
+                                </div>
+                                <span className="font-medium">
+                                    ✏️ Usar outro endereço
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Address Form */}
+                {(!isAuthenticated || savedAddresses.length === 0 || selectedAddressId === null) && (
+                    <AddressForm
+                        data={addressData}
+                        errors={addressErrors}
+                        onChange={handleAddressChange}
+                    />
+                )}
+
+                {/* Payment */}
                 <PaymentForm
                     selectedMethod={paymentMethod}
                     changeFor={changeFor}
@@ -190,11 +402,11 @@ export default function CheckoutPage() {
                     onChangeForChange={setChangeFor}
                 />
 
-                {/* Resumo */}
+                {/* Summary */}
                 <OrderSummary />
             </main>
 
-            {/* Footer Fixo */}
+            {/* Fixed Footer */}
             <div
                 className="fixed bottom-0 left-0 right-0 border-t p-4 transition-colors"
                 style={{
@@ -203,9 +415,17 @@ export default function CheckoutPage() {
                 }}
             >
                 <div className="max-w-3xl mx-auto">
+                    {!isAuthenticated && !isCheckingAuth && (
+                        <p
+                            className="mb-2 text-center text-xs"
+                            style={{ color: 'var(--color-text-secondary)' }}
+                        >
+                            🔐 Você será redirecionado para fazer login
+                        </p>
+                    )}
                     <button
                         onClick={handleSubmit}
-                        disabled={isLoading}
+                        disabled={isLoading || isCheckingAuth}
                         className="w-full py-4 rounded-full font-semibold transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         style={{
                             backgroundColor: 'var(--color-primary)',
@@ -227,7 +447,11 @@ export default function CheckoutPage() {
                             </>
                         ) : (
                             <>
-                                {CHECKOUT_MESSAGES.confirmButton} •{' '}
+                                {isAuthenticated
+                                    ? CHECKOUT_MESSAGES.confirmButton
+                                    : 'Entrar e confirmar'
+                                }
+                                {' • '}
                                 {formatPrice(Math.max(0, finalTotal))}
                             </>
                         )}

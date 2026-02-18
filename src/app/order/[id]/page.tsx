@@ -2,9 +2,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
+import { motion } from 'framer-motion';
 import {
     CheckCircle,
     Clock,
@@ -14,12 +14,14 @@ import {
     Bike,
     Package,
     Home,
+    Loader2,
 } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { useOrders } from '@/hooks/useOrders';
 import { formatPrice } from '@/lib/utils/format.utils';
-import { formatAddress } from '@/lib/utils/checkout.utils';
-import { OrderData } from '@/types';
+import {
+    getOrderById as getOrderFromDB,
+    updateOrderStatus as updateOrderInDB,
+    type OrderData,
+} from '@/actions/orders';
 
 const STATUS_STEPS = [
     { key: 'PENDING', label: 'Pedido recebido', icon: CheckCircle },
@@ -37,42 +39,51 @@ const PAYMENT_LABELS: Record<string, string> = {
     CASH: '💵 Dinheiro',
 };
 
+const STATUS_PROGRESSION = [
+    'PENDING', 'CONFIRMED', 'PREPARING', 'READY', 'DELIVERING', 'DELIVERED',
+];
+
 export default function OrderPage() {
     const params = useParams();
-    const { getOrderById, updateOrderStatus, isHydrated } = useOrders();
-
-    const [order, setOrder] = useState<OrderData | null>(null);
-
+    const router = useRouter();
     const orderId = params.id as string;
 
-    useEffect(() => {
-        if (isHydrated) {
-            const foundOrder = getOrderById(orderId);
-            if (foundOrder) {
-                setOrder(foundOrder);
-            }
-        }
-    }, [isHydrated, orderId, getOrderById]);
+    const [order, setOrder] = useState<OrderData | null>(null);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [notFound, setNotFound] = useState<boolean>(false);
 
-    // Simular progressão do status
+    // Load order from Supabase
+    useEffect(() => {
+        const loadOrder = async (): Promise<void> => {
+            const result = await getOrderFromDB(orderId)
+
+            if (result.error || !result.data) {
+                setNotFound(true)
+                setIsLoading(false)
+                return
+            }
+
+            setOrder(result.data)
+            setIsLoading(false)
+        }
+
+        loadOrder()
+    }, [orderId])
+
+    // Simulate status progression (demo only)
     useEffect(() => {
         if (!order) return;
 
-        const statusProgression: OrderData['status'][] = [
-            'PENDING',
-            'CONFIRMED',
-            'PREPARING',
-            'READY',
-            'DELIVERING',
-            'DELIVERED',
-        ];
+        const currentIndex = STATUS_PROGRESSION.indexOf(order.status);
 
-        const currentIndex = statusProgression.indexOf(order.status);
+        if (currentIndex < STATUS_PROGRESSION.length - 1) {
+            const timeout = setTimeout(async () => {
+                const nextStatus = STATUS_PROGRESSION[currentIndex + 1];
 
-        if (currentIndex < statusProgression.length - 1) {
-            const timeout = setTimeout(() => {
-                const nextStatus = statusProgression[currentIndex + 1];
-                updateOrderStatus(order.id, nextStatus);
+                // Update in Supabase
+                await updateOrderInDB(order.id, nextStatus);
+
+                // Update local state
                 setOrder((prev) =>
                     prev ? { ...prev, status: nextStatus } : null
                 );
@@ -80,22 +91,22 @@ export default function OrderPage() {
 
             return () => clearTimeout(timeout);
         }
-    }, [order, updateOrderStatus]);
+    }, [order]);
 
     // Loading state
-    if (!isHydrated) {
+    if (isLoading) {
         return (
             <div
                 className="min-h-screen flex items-center justify-center transition-colors"
                 style={{ backgroundColor: 'var(--color-bg-secondary)' }}
             >
-                <div className="animate-spin w-8 h-8 border-4 border-[#00A082] border-t-transparent rounded-full" />
+                <Loader2 size={32} className="animate-spin text-[#00A082]" />
             </div>
         );
     }
 
     // Order not found
-    if (!order) {
+    if (notFound || !order) {
         return (
             <div
                 className="min-h-screen flex flex-col items-center justify-center p-4 transition-colors"
@@ -128,17 +139,31 @@ export default function OrderPage() {
         (s) => s.key === order.status
     );
     const isDelivered = order.status === 'DELIVERED';
-    const estimatedTime = new Date(order.estimatedDelivery).toLocaleTimeString(
-        'pt-BR',
-        { hour: '2-digit', minute: '2-digit' }
-    );
+
+    const estimatedTime = order.estimatedDelivery
+        ? new Date(order.estimatedDelivery).toLocaleTimeString('pt-BR', {
+            hour: '2-digit',
+            minute: '2-digit',
+        })
+        : '--:--';
+
+    const formatOrderAddress = (): string => {
+        const addr = order.address;
+        const parts = [
+            `${addr.street}, ${addr.number}`,
+            addr.complement,
+            addr.neighborhood,
+            `${addr.city} - ${addr.state}`,
+        ];
+        return parts.filter(Boolean).join(', ');
+    };
 
     return (
         <div
             className="min-h-screen pb-8 transition-colors"
             style={{ backgroundColor: 'var(--color-bg-secondary)' }}
         >
-            {/* Header de Sucesso */}
+            {/* Success Header */}
             <div className="bg-[#00A082] text-white p-6 text-center">
                 <motion.div
                     initial={{ scale: 0 }}
@@ -155,11 +180,13 @@ export default function OrderPage() {
                 >
                     {isDelivered ? 'Pedido Entregue! 🎉' : 'Pedido Confirmado!'}
                 </motion.h1>
-                <p className="text-white/80">Pedido #{order.id}</p>
+                <p className="text-white/80 text-sm">
+                    Pedido #{order.id.slice(0, 8)}...
+                </p>
             </div>
 
             <main className="max-w-3xl mx-auto px-4 py-6 space-y-6">
-                {/* Tempo estimado */}
+                {/* Estimated Time */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -172,9 +199,7 @@ export default function OrderPage() {
                 >
                     <Clock size={32} className="mx-auto mb-2 text-[#00A082]" />
                     <p style={{ color: 'var(--color-text-secondary)' }}>
-                        {isDelivered
-                            ? 'Entregue às'
-                            : 'Previsão de entrega'}
+                        {isDelivered ? 'Entregue às' : 'Previsão de entrega'}
                     </p>
                     <p
                         className="text-3xl font-bold"
@@ -272,7 +297,7 @@ export default function OrderPage() {
                     </div>
                 </motion.div>
 
-                {/* Endereço de entrega */}
+                {/* Delivery Address */}
                 <div
                     className="rounded-2xl p-6 border transition-colors"
                     style={{
@@ -290,11 +315,11 @@ export default function OrderPage() {
                         </h2>
                     </div>
                     <p style={{ color: 'var(--color-text-secondary)' }}>
-                        {formatAddress(order.address)}
+                        {formatOrderAddress()}
                     </p>
                 </div>
 
-                {/* Forma de pagamento */}
+                {/* Payment Method */}
                 <div
                     className="rounded-2xl p-6 border transition-colors"
                     style={{
@@ -318,13 +343,13 @@ export default function OrderPage() {
                                 className="block text-sm mt-1"
                                 style={{ color: 'var(--color-text-tertiary)' }}
                             >
-                                Troco para R$ {order.changeFor.toFixed(2)}
+                                Troco para R$ {Number(order.changeFor).toFixed(2)}
                             </span>
                         )}
                     </p>
                 </div>
 
-                {/* Itens do pedido */}
+                {/* Order Items */}
                 <div
                     className="rounded-2xl p-6 border transition-colors"
                     style={{
@@ -345,20 +370,17 @@ export default function OrderPage() {
                                 key={index}
                                 className="flex items-center gap-3"
                             >
-                                <div className="relative w-12 h-12 rounded-lg overflow-hidden shrink-0">
-                                    <Image
-                                        src={item.menuItem.image}
-                                        alt={item.menuItem.name}
-                                        fill
-                                        className="object-cover"
-                                    />
-                                </div>
+                                <img
+                                    src={item.menuItemImage}
+                                    alt={item.menuItemName}
+                                    className="w-12 h-12 rounded-lg object-cover shrink-0"
+                                />
                                 <div className="flex-1">
                                     <p
                                         className="font-medium"
                                         style={{ color: 'var(--color-text)' }}
                                     >
-                                        {item.quantity}x {item.menuItem.name}
+                                        {item.quantity}x {item.menuItemName}
                                     </p>
                                     {item.observation && (
                                         <p
@@ -375,9 +397,7 @@ export default function OrderPage() {
                                     className="font-medium"
                                     style={{ color: 'var(--color-text)' }}
                                 >
-                                    {formatPrice(
-                                        item.menuItem.price * item.quantity
-                                    )}
+                                    {formatPrice(item.menuItemPrice * item.quantity)}
                                 </p>
                             </div>
                         ))}
@@ -388,34 +408,22 @@ export default function OrderPage() {
                         style={{ borderColor: 'var(--color-border)' }}
                     >
                         <div className="flex justify-between text-sm">
-                            <span
-                                style={{
-                                    color: 'var(--color-text-secondary)',
-                                }}
-                            >
+                            <span style={{ color: 'var(--color-text-secondary)' }}>
                                 Subtotal
                             </span>
-                            <span
-                                style={{
-                                    color: 'var(--color-text-secondary)',
-                                }}
-                            >
+                            <span style={{ color: 'var(--color-text-secondary)' }}>
                                 {formatPrice(order.subtotal)}
                             </span>
                         </div>
                         <div className="flex justify-between text-sm">
-                            <span
-                                style={{
-                                    color: 'var(--color-text-secondary)',
-                                }}
-                            >
+                            <span style={{ color: 'var(--color-text-secondary)' }}>
                                 Entrega
                             </span>
                             <span
                                 style={{
                                     color:
                                         order.deliveryFee === 0
-                                            ? 'var(--color-primary)'
+                                            ? '#00A082'
                                             : 'var(--color-text-secondary)',
                                 }}
                             >
@@ -427,7 +435,7 @@ export default function OrderPage() {
                         {order.discount > 0 && (
                             <div
                                 className="flex justify-between text-sm"
-                                style={{ color: 'var(--color-primary)' }}
+                                style={{ color: '#00A082' }}
                             >
                                 <span>Desconto</span>
                                 <span>-{formatPrice(order.discount)}</span>
@@ -446,13 +454,28 @@ export default function OrderPage() {
                     </div>
                 </div>
 
-                {/* Botão voltar */}
-                <Link
-                    href="/"
-                    className="block w-full bg-[#00A082] text-white py-4 rounded-full font-semibold hover:bg-[#008F74] transition-colors text-center"
-                >
-                    Fazer novo pedido
-                </Link>
+                {/* Actions */}
+                <div className="flex flex-col gap-3">
+                    <Link
+                        href="/orders"
+                        className="block w-full bg-[#00A082] text-white py-4 rounded-full font-semibold hover:bg-[#008F74] transition-colors text-center"
+                    >
+                        Ver meus pedidos
+                    </Link>
+                    <Link
+                        href="/"
+                        className="block w-full py-4 rounded-full font-semibold transition-colors text-center"
+                        style={{
+                            backgroundColor: 'var(--color-bg-card)',
+                            color: 'var(--color-text)',
+                            borderWidth: '1px',
+                            borderStyle: 'solid',
+                            borderColor: 'var(--color-border)',
+                        }}
+                    >
+                        Fazer novo pedido
+                    </Link>
+                </div>
             </main>
         </div>
     );
